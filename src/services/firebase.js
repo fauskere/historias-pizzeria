@@ -2,6 +2,8 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { uploadToCloudinary } from './cloudinary';
+
 
 const LOCAL_STORAGE_KEY_CONFIG = 'pizzeria_firebase_config';
 const LOCAL_STORAGE_KEY_STORIES = 'pizzeria_stories_local';
@@ -201,32 +203,12 @@ export async function deleteStory(id) {
 
 // Subir archivo multimedia (imagen o video)
 export async function uploadStoryMedia(file, onProgress) {
-  const { initialized } = initFirebase();
-
-  // Si Firebase Storage está activo, subir directamente a la nube
-  if (initialized && storage) {
-    const filename = `stories/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-    const storageRef = ref(storage, filename);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    return new Promise((resolve, reject) => {
-      uploadTask.on(
-        'state_changed',
-        snapshot => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          if (onProgress) onProgress(progress);
-        },
-        error => reject(error),
-        async () => {
-          const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-          resolve({
-            url: downloadUrl,
-            type: file.type.startsWith('video/') ? 'video' : 'image',
-            name: file.name
-          });
-        }
-      );
-    });
+  try {
+    // Usar Cloudinary (100% gratuito, sin tarjeta de crédito)
+    const result = await uploadToCloudinary(file, onProgress);
+    return result;
+  } catch (cloudinaryErr) {
+    console.warn('Error subiendo a Cloudinary, usando vista previa local:', cloudinaryErr);
   }
 
   // Fallback local: URL de objeto o Base64
@@ -244,6 +226,7 @@ export async function uploadStoryMedia(file, onProgress) {
     reader.readAsDataURL(file);
   });
 }
+
 
 // Ajustes de Meta (Tokens e IDs)
 export function getMetaSettings() {
