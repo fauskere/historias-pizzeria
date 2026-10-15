@@ -57,13 +57,24 @@ const DEFAULT_SAMPLE_STORIES = [
   }
 ];
 
-// Obtener configuración guardada de Firebase
+// Configuración oficial del proyecto Firebase "Programador de Contenido"
+export const DEFAULT_FIREBASE_CONFIG = {
+  projectId: "programador-de-contenido",
+  appId: "1:1039821666755:web:a2ae4a06a71f9be3936576",
+  storageBucket: "programador-de-contenido.firebasestorage.app",
+  apiKey: "AIzaSyChzp3xjt4R0H3xgo2wnqpJ2J5fq8FBZ_4",
+  authDomain: "programador-de-contenido.firebaseapp.com",
+  messagingSenderId: "1039821666755",
+  measurementId: "G-MMVQ38ML1D"
+};
+
+// Obtener configuración de Firebase
 export function getSavedFirebaseConfig() {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY_CONFIG);
-    return raw ? JSON.parse(raw) : null;
+    return raw ? JSON.parse(raw) : DEFAULT_FIREBASE_CONFIG;
   } catch {
-    return null;
+    return DEFAULT_FIREBASE_CONFIG;
   }
 }
 
@@ -71,6 +82,7 @@ export function getSavedFirebaseConfig() {
 export function saveFirebaseConfig(config) {
   localStorage.setItem(LOCAL_STORAGE_KEY_CONFIG, JSON.stringify(config));
 }
+
 
 // Inicializar cliente Firebase (si hay configuración válida)
 let app = null;
