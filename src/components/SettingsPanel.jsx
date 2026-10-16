@@ -56,12 +56,28 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
     setMetaTestResult(result);
     setMetaTesting(false);
 
-    // Si detectó automáticamente el ID de Instagram y no estaba puesto, sugerirlo
-    if (result.success && result.detectedInstagramId && !metaSettings.instagramAccountId) {
-      const updated = { ...metaSettings, instagramAccountId: result.detectedInstagramId };
-      setMetaState(updated);
-      saveMetaSettings(updated);
+    // Si detectó automáticamente los IDs y no estaban puestos, sugerirlos y guardarlos
+    if (result.success) {
+      let changed = false;
+      const updated = { ...metaSettings };
+      if (result.detectedInstagramId && !metaSettings.instagramAccountId) {
+        updated.instagramAccountId = result.detectedInstagramId;
+        changed = true;
+      }
+      if (result.detectedFacebookPageId && !metaSettings.facebookPageId) {
+        updated.facebookPageId = result.detectedFacebookPageId;
+        changed = true;
+      }
+      if (result.page?.name && (!metaSettings.restaurantName || metaSettings.restaurantName === 'Mi Pizzería')) {
+        updated.restaurantName = result.page.name;
+        changed = true;
+      }
+      if (changed) {
+        setMetaState(updated);
+        saveMetaSettings(updated);
+      }
     }
+
   };
 
   // Guardar configuración de Firebase

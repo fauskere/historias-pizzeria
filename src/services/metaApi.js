@@ -29,29 +29,65 @@ export async function testMetaConnection({ pageAccessToken, facebookPageId, inst
       };
     }
 
-    // 2. Si se proporcionó un Facebook Page ID, verificar la página
+    // 2. Intentar descubrir páginas administradas mediante /me/accounts
     let pageInfo = { id: meData.id, name: meData.name };
-    if (facebookPageId) {
-      const pageRes = await fetch(
-        `${GRAPH_BASE_URL}/${facebookPageId}?fields=id,name,link,instagram_business_account{id,username}&access_token=${encodeURIComponent(pageAccessToken)}`
+    let discoveredPageId = facebookPageId || null;
+    let discoveredIgId = instagramAccountId || null;
+    let igInfo = null;
+
+    try {
+      const accountsRes = await fetch(
+        `${GRAPH_BASE_URL}/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name}&access_token=${encodeURIComponent(pageAccessToken)}`
       );
-      const pageData = await pageRes.json();
-      if (!pageData.error) {
-        pageInfo = pageData;
+      const accountsData = await accountsRes.json();
+      if (accountsData.data && accountsData.data.length > 0) {
+        // Tomar la primera página o la que coincida con el facebookPageId
+        const targetPage = facebookPageId 
+          ? accountsData.data.find(p => p.id === facebookPageId) || accountsData.data[0]
+          : accountsData.data[0];
+
+        pageInfo = targetPage;
+        discoveredPageId = targetPage.id;
+        if (targetPage.instagram_business_account) {
+          discoveredIgId = targetPage.instagram_business_account.id;
+          igInfo = targetPage.instagram_business_account;
+        }
+      }
+    } catch {
+      // Ignorar si no es token de usuario con permisos de accounts
+    }
+
+    // 3. Si se proporcionó o descubrió un Facebook Page ID, verificar directamente
+    if (discoveredPageId && (!pageInfo.instagram_business_account || !discoveredIgId)) {
+      try {
+        const pageRes = await fetch(
+          `${GRAPH_BASE_URL}/${discoveredPageId}?fields=id,name,link,instagram_business_account{id,username,name}&access_token=${encodeURIComponent(pageAccessToken)}`
+        );
+        const pageData = await pageRes.json();
+        if (!pageData.error) {
+          pageInfo = pageData;
+          if (pageData.instagram_business_account) {
+            discoveredIgId = pageData.instagram_business_account.id;
+            igInfo = pageData.instagram_business_account;
+          }
+        }
+      } catch {
+        // Continuar
       }
     }
 
-    // 3. Verificar cuenta de Instagram
-    let igInfo = null;
-    const targetIgId = instagramAccountId || pageInfo.instagram_business_account?.id;
-
-    if (targetIgId) {
-      const igRes = await fetch(
-        `${GRAPH_BASE_URL}/${targetIgId}?fields=id,username,name,profile_picture_url&access_token=${encodeURIComponent(pageAccessToken)}`
-      );
-      const igData = await igRes.json();
-      if (!igData.error) {
-        igInfo = igData;
+    // 4. Si tenemos un ID de Instagram pero aún no tenemos sus datos detallados
+    if (discoveredIgId && !igInfo?.username) {
+      try {
+        const igRes = await fetch(
+          `${GRAPH_BASE_URL}/${discoveredIgId}?fields=id,username,name,profile_picture_url&access_token=${encodeURIComponent(pageAccessToken)}`
+        );
+        const igData = await igRes.json();
+        if (!igData.error) {
+          igInfo = igData;
+        }
+      } catch {
+        // Continuar
       }
     }
 
@@ -60,7 +96,8 @@ export async function testMetaConnection({ pageAccessToken, facebookPageId, inst
       message: 'Conexión exitosa con Meta Graph API',
       page: pageInfo,
       instagram: igInfo,
-      detectedInstagramId: pageInfo.instagram_business_account?.id || null
+      detectedFacebookPageId: discoveredPageId,
+      detectedInstagramId: discoveredIgId
     };
   } catch (err) {
     return {
