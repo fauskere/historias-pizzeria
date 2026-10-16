@@ -147,9 +147,13 @@ export async function saveStory(story) {
   const { initialized } = initFirebase();
   if (initialized && db) {
     try {
-      await setDoc(doc(db, 'stories', id), storyData);
+      // Usar timeout de 4s para que nunca bloquee la interfaz si hay problemas de red
+      await Promise.race([
+        setDoc(doc(db, 'stories', id), storyData),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 4000))
+      ]);
     } catch (err) {
-      console.warn('Error guardando en Firestore:', err);
+      console.warn('Aviso al guardar en Firestore (se guarda en local):', err);
     }
   }
 
@@ -203,29 +207,10 @@ export async function deleteStory(id) {
 
 // Subir archivo multimedia (imagen o video)
 export async function uploadStoryMedia(file, onProgress) {
-  try {
-    // Usar Cloudinary (100% gratuito, sin tarjeta de crédito)
-    const result = await uploadToCloudinary(file, onProgress);
-    return result;
-  } catch (cloudinaryErr) {
-    console.warn('Error subiendo a Cloudinary, usando vista previa local:', cloudinaryErr);
-  }
-
-  // Fallback local: URL de objeto o Base64
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (onProgress) onProgress(100);
-      resolve({
-        url: reader.result,
-        type: file.type.startsWith('video/') ? 'video' : 'image',
-        name: file.name,
-        isLocalPreview: true
-      });
-    };
-    reader.readAsDataURL(file);
-  });
+  // Usar Cloudinary (100% gratuito, sin tarjeta de crédito)
+  return await uploadToCloudinary(file, onProgress);
 }
+
 
 
 // Ajustes de Meta (Tokens e IDs)

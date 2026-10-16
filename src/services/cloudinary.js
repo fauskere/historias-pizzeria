@@ -7,7 +7,6 @@ export const DEFAULT_CLOUDINARY_CONFIG = {
   uploadPreset: 'idkidk'
 };
 
-
 export function getCloudinaryConfig() {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY_CLOUDINARY);
@@ -28,11 +27,13 @@ export function saveCloudinaryConfig(config) {
 export async function uploadToCloudinary(file, onProgress) {
   const config = getCloudinaryConfig();
   const cloudName = config.cloudName || 'i36jii1k';
-  const uploadPreset = config.uploadPreset || 'ml_default';
+  const uploadPreset = config.uploadPreset || 'idkidk';
 
   const isVideo = file.type.startsWith('video/');
   const resourceType = isVideo ? 'video' : 'image';
   const endpoint = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
+
+  console.log(`Iniciando subida a Cloudinary (${cloudName}, preset: ${uploadPreset}, tipo: ${resourceType})...`);
 
   const formData = new FormData();
   formData.append('file', file);
@@ -41,6 +42,7 @@ export async function uploadToCloudinary(file, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', endpoint);
+    xhr.timeout = 60000; // 60 segundos de timeout
 
     if (xhr.upload && onProgress) {
       xhr.upload.onprogress = (e) => {
@@ -55,27 +57,35 @@ export async function uploadToCloudinary(file, onProgress) {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const response = JSON.parse(xhr.responseText);
+          console.log('Subida a Cloudinary exitosa:', response.secure_url);
           resolve({
             url: response.secure_url,
             type: isVideo ? 'video' : 'image',
             name: file.name
           });
         } catch {
-          reject(new Error('Respuesta inválida de Cloudinary'));
+          reject(new Error('Respuesta inválida de Cloudinary.'));
         }
       } else {
         try {
           const errData = JSON.parse(xhr.responseText);
-          const msg = errData.error?.message || 'Error al subir a Cloudinary';
+          const msg = errData.error?.message || `Error ${xhr.status} de Cloudinary`;
+          console.error('Error de Cloudinary:', msg);
           reject(new Error(msg));
         } catch {
-          reject(new Error(`Error ${xhr.status} al subir a Cloudinary`));
+          reject(new Error(`Error ${xhr.status} al subir a Cloudinary.`));
         }
       }
     };
 
     xhr.onerror = () => {
-      reject(new Error('Error de red al conectar con Cloudinary.'));
+      console.error('Error de red en Cloudinary');
+      reject(new Error('Error de red al conectar con Cloudinary. Verifica tu conexión.'));
+    };
+
+    xhr.ontimeout = () => {
+      console.error('Timeout en Cloudinary');
+      reject(new Error('La subida tardó demasiado. Comprueba tu conexión a internet o el tamaño del archivo.'));
     };
 
     xhr.send(formData);
