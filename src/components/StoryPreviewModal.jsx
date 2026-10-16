@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Pizza, Clock, Power, Film, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
-import { getMetaSettings, addPublicationLog } from '../services/firebase';
+import { getMetaSettings, fetchMetaSettings, addPublicationLog } from '../services/firebase';
 import { publishInstagramStory, publishFacebookStory } from '../services/metaApi';
 
 export default function StoryPreviewModal({ story, onClose, onToggleActive, restaurantName = 'Mi Pizzería' }) {
@@ -11,7 +11,7 @@ export default function StoryPreviewModal({ story, onClose, onToggleActive, rest
   if (!story) return null;
 
   const handlePublishNow = async () => {
-    const meta = getMetaSettings();
+    const meta = await fetchMetaSettings();
     if (!meta.pageAccessToken) {
       alert('Debes configurar tu Page Access Token en Configuración antes de publicar.');
       return;

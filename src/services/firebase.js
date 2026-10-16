@@ -10,54 +10,8 @@ const LOCAL_STORAGE_KEY_STORIES = 'pizzeria_stories_local';
 const LOCAL_STORAGE_KEY_SETTINGS = 'pizzeria_settings_local';
 const LOCAL_STORAGE_KEY_LOGS = 'pizzeria_logs_local';
 
-// Historias de ejemplo iniciales para que la pizzería vea el sistema funcionando de inmediato
-const DEFAULT_SAMPLE_STORIES = [
-  {
-    id: 'sample-1',
-    title: 'Promo 2x1 Muzza Martes',
-    category: 'promo',
-    categoryLabel: 'Promoción',
-    color: '#f97316',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=80',
-    days: ['martes'],
-    time: '19:30',
-    repeatWeekly: true,
-    active: true,
-    platforms: { instagram: true, facebook: true },
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 'sample-2',
-    title: 'Carta Completa y Precios',
-    category: 'menu',
-    categoryLabel: 'Carta / Menú',
-    color: '#3b82f6',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=80',
-    days: ['viernes', 'sabado', 'domingo'],
-    time: '12:00',
-    repeatWeekly: true,
-    active: true,
-    platforms: { instagram: true, facebook: true },
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 'sample-3',
-    title: 'Horarios de Atención del Finde',
-    category: 'hours',
-    categoryLabel: 'Horarios',
-    color: '#10b981',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=800&auto=format&fit=crop&q=80',
-    days: ['viernes', 'sabado'],
-    time: '18:00',
-    repeatWeekly: true,
-    active: true,
-    platforms: { instagram: true, facebook: true },
-    createdAt: new Date().toISOString()
-  }
-];
+// Historias iniciales vacías (sin ejemplos ficticios)
+const DEFAULT_SAMPLE_STORIES = [];
 
 // Configuración oficial del proyecto Firebase "Programador de Contenido"
 export const DEFAULT_FIREBASE_CONFIG = {
@@ -110,13 +64,13 @@ export function initFirebase() {
 function getLocalStories() {
   const localData = localStorage.getItem(LOCAL_STORAGE_KEY_STORIES);
   if (!localData) {
-    localStorage.setItem(LOCAL_STORAGE_KEY_STORIES, JSON.stringify(DEFAULT_SAMPLE_STORIES));
-    return DEFAULT_SAMPLE_STORIES;
+    return [];
   }
   try {
-    return JSON.parse(localData);
+    const list = JSON.parse(localData);
+    return Array.isArray(list) ? list.filter(s => !s.id?.startsWith('sample-')) : [];
   } catch {
-    return DEFAULT_SAMPLE_STORIES;
+    return [];
   }
 }
 

@@ -245,15 +245,17 @@ async function runScheduler() {
     if (!story.days || !Array.isArray(story.days) || !story.days.includes(currentDay)) continue;
     if (!story.time) continue;
 
-    // Comparar hora programada con ventana de tolerancia de 30 minutos
+    // Comparar si la hora programada ya llegó en el día de hoy
     const [sHour, sMin] = story.time.split(':').map(n => parseInt(n, 10));
     const storyMinutesTotal = sHour * 60 + sMin;
-    const diff = currentMinutesTotal - storyMinutesTotal;
 
-    // Se dispara si la hora ya llegó o pasó en los últimos 30 minutos
-    if (diff < 0 || diff > 30) continue;
+    // Si la hora programada todavía no llegó hoy:
+    if (currentMinutesTotal < storyMinutesTotal) {
+      console.log(`La historia "${story.title}" está programada para más tarde (${story.time} hs).`);
+      continue;
+    }
 
-    // Si ya se publicó hoy, saltar
+    // Si ya se publicó hoy, saltar para no duplicar
     if (story.lastAutoPublishDate === todayStr) {
       console.log(`La historia "${story.title}" ya fue publicada hoy (${todayStr}).`);
       continue;

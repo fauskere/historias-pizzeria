@@ -16,7 +16,7 @@ import {
   Check
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
-import { getMetaSettings, addPublicationLog } from '../services/firebase';
+import { getMetaSettings, fetchMetaSettings, addPublicationLog } from '../services/firebase';
 import { publishInstagramStory, publishFacebookStory } from '../services/metaApi';
 
 const DAYS_MAP = {
@@ -43,7 +43,7 @@ export default function StoryLibrary({
   const [publishFeedback, setPublishFeedback] = useState({});
 
   const handlePublishNow = async (story) => {
-    const meta = getMetaSettings();
+    const meta = await fetchMetaSettings();
     if (!meta.pageAccessToken) {
       alert('Debes configurar tu Page Access Token en la pestaña "Configuración" antes de publicar.');
       return;
