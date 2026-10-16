@@ -10,7 +10,12 @@ export const DEFAULT_CLOUDINARY_CONFIG = {
 export function getCloudinaryConfig() {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY_CLOUDINARY);
-    return raw ? JSON.parse(raw) : DEFAULT_CLOUDINARY_CONFIG;
+    if (!raw) return DEFAULT_CLOUDINARY_CONFIG;
+    const parsed = JSON.parse(raw);
+    return {
+      cloudName: parsed.cloudName || DEFAULT_CLOUDINARY_CONFIG.cloudName,
+      uploadPreset: (parsed.uploadPreset && parsed.uploadPreset !== 'ml_default') ? parsed.uploadPreset : DEFAULT_CLOUDINARY_CONFIG.uploadPreset
+    };
   } catch {
     return DEFAULT_CLOUDINARY_CONFIG;
   }
@@ -18,6 +23,59 @@ export function getCloudinaryConfig() {
 
 export function saveCloudinaryConfig(config) {
   localStorage.setItem(LOCAL_STORAGE_KEY_CLOUDINARY, JSON.stringify(config));
+}
+
+/**
+ * Optimiza automáticamente imágenes que superen los 4MB redimensionándolas a formato historia vertical
+ * (1080x1920 máx) en el navegador sin pérdida visible de calidad para cumplir con Cloudinary y Meta.
+ */
+export async function optimizeImageIfNeeded(file) {
+  if (file.size <= 4 * 1024 * 1024) {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      const maxW = 1080;
+      const maxH = 1920;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxW || height > maxH) {
+        const ratio = Math.min(maxW / width, maxH / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const newName = file.name.replace(/\.[^/.]+$/, '.jpg');
+          const optimizedFile = new File([blob], newName, {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          });
+          console.log(`Imagen optimizada de ${(file.size / (1024*1024)).toFixed(1)}MB a ${(optimizedFile.size / (1024*1024)).toFixed(1)}MB`);
+          resolve(optimizedFile);
+        } else {
+          resolve(file);
+        }
+      }, 'image/jpeg', 0.88);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
 }
 
 /**
@@ -29,14 +87,24 @@ export async function uploadToCloudinary(file, onProgress) {
   const cloudName = config.cloudName || 'i36jii1k';
   const uploadPreset = config.uploadPreset || 'idkidk';
 
-  const isVideo = file.type.startsWith('video/');
+  const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|m4v|avi|webm|mkv|3gp)$/i.test(file.name);
   const resourceType = isVideo ? 'video' : 'image';
   const endpoint = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
 
-  console.log(`Iniciando subida a Cloudinary (${cloudName}, preset: ${uploadPreset}, tipo: ${resourceType})...`);
+  // Si es imagen pesada, optimizar antes de enviar
+  let fileToUpload = file;
+  if (!isVideo && file.size > 4 * 1024 * 1024) {
+    try {
+      fileToUpload = await optimizeImageIfNeeded(file);
+    } catch (e) {
+      console.warn('No se pudo optimizar la imagen previa:', e);
+    }
+  }
+
+  console.log(`Iniciando subida a Cloudinary (${cloudName}, preset: ${uploadPreset}, tipo: ${resourceType}, tamaño: ${(fileToUpload.size / (1024*1024)).toFixed(1)}MB)...`);
 
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('file', fileToUpload);
   formData.append('upload_preset', uploadPreset);
 
   return new Promise((resolve, reject) => {

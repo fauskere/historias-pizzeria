@@ -10,10 +10,14 @@ import {
   PauseCircle, 
   Filter,
   Search,
-  Plus
+  Plus,
+  Send,
+  Zap,
+  Check
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
-
+import { getMetaSettings, addPublicationLog } from '../services/firebase';
+import { publishInstagramStory, publishFacebookStory } from '../services/metaApi';
 
 const DAYS_MAP = {
   lunes: 'Lun',
@@ -35,6 +39,99 @@ export default function StoryLibrary({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // all, active, paused
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [publishingId, setPublishingId] = useState(null);
+  const [publishFeedback, setPublishFeedback] = useState({});
+
+  const handlePublishNow = async (story) => {
+    const meta = getMetaSettings();
+    if (!meta.pageAccessToken) {
+      alert('Debes configurar tu Page Access Token en la pestaña "Configuración" antes de publicar.');
+      return;
+    }
+
+    setPublishingId(story.id);
+    setPublishFeedback(prev => ({ ...prev, [story.id]: null }));
+
+    const results = [];
+    let overallSuccess = true;
+
+    try {
+      if (story.platforms?.instagram) {
+        if (!meta.instagramAccountId) {
+          results.push({ platform: 'instagram', success: false, message: 'Falta Instagram ID' });
+          overallSuccess = false;
+        } else {
+          try {
+            const igRes = await publishInstagramStory({
+              instagramAccountId: meta.instagramAccountId,
+              pageAccessToken: meta.pageAccessToken,
+              mediaUrl: story.mediaUrl,
+              mediaType: story.mediaType
+            });
+            results.push({ platform: 'instagram', success: true, storyId: igRes.storyId });
+          } catch (err) {
+            results.push({ platform: 'instagram', success: false, message: err.message });
+            overallSuccess = false;
+          }
+        }
+      }
+
+      if (story.platforms?.facebook) {
+        if (!meta.facebookPageId) {
+          results.push({ platform: 'facebook', success: false, message: 'Falta Facebook Page ID' });
+          overallSuccess = false;
+        } else {
+          try {
+            const fbRes = await publishFacebookStory({
+              facebookPageId: meta.facebookPageId,
+              pageAccessToken: meta.pageAccessToken,
+              mediaUrl: story.mediaUrl,
+              mediaType: story.mediaType
+            });
+            results.push({ platform: 'facebook', success: true, storyId: fbRes.storyId });
+          } catch (err) {
+            results.push({ platform: 'facebook', success: false, message: err.message });
+            overallSuccess = false;
+          }
+        }
+      }
+
+      addPublicationLog({
+        storyTitle: story.title,
+        storyId: story.id,
+        mediaType: story.mediaType,
+        success: overallSuccess,
+        details: results
+      });
+
+      if (overallSuccess) {
+        setPublishFeedback(prev => ({
+          ...prev,
+          [story.id]: { type: 'success', text: '¡Publicada con éxito en Meta!' }
+        }));
+      } else {
+        const errorMsg = results.filter(r => !r.success).map(r => `${r.platform}: ${r.message}`).join(', ');
+        setPublishFeedback(prev => ({
+          ...prev,
+          [story.id]: { type: 'error', text: errorMsg || 'Error al publicar' }
+        }));
+      }
+    } catch (err) {
+      setPublishFeedback(prev => ({
+        ...prev,
+        [story.id]: { type: 'error', text: err.message }
+      }));
+    } finally {
+      setPublishingId(null);
+      setTimeout(() => {
+        setPublishFeedback(prev => {
+          const next = { ...prev };
+          delete next[story.id];
+          return next;
+        });
+      }, 6000);
+    }
+  };
 
   // Filtrado
   const filtered = stories.filter(story => {
@@ -225,14 +322,21 @@ export default function StoryLibrary({
                       <span>{story.time} hs</span>
                     </div>
 
-                    {/* Days badges */}
-                    <div className="flex flex-wrap gap-1">
-                      {story.days?.map(d => (
-                        <span key={d} className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-semibold text-slate-300">
-                          {DAYS_MAP[d] || d}
-                        </span>
-                      ))}
-                    </div>
+                    {/* Days badges or on-demand pill */}
+                    {(!story.days || story.days.length === 0) ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
+                        <Zap className="w-3 h-3 text-amber-400" />
+                        A Demanda (Sin días fijos)
+                      </span>
+                    ) : (
+                      <div className="flex flex-wrap gap-1">
+                        {story.days?.map(d => (
+                          <span key={d} className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-semibold text-slate-300">
+                            {DAYS_MAP[d] || d}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -242,7 +346,7 @@ export default function StoryLibrary({
                 <div className="flex items-center gap-2">
                   {story.platforms?.instagram && <Instagram className="w-3.5 h-3.5 text-pink-400" title="Instagram" />}
                   {story.platforms?.facebook && <Facebook className="w-3.5 h-3.5 text-blue-400" title="Facebook" />}
-                  {story.repeatWeekly && (
+                  {story.repeatWeekly && story.days?.length > 0 && (
                     <span className="flex items-center gap-1 text-[11px] text-slate-500">
                       <Repeat className="w-3 h-3" /> Semanal
                     </span>
@@ -250,6 +354,25 @@ export default function StoryLibrary({
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handlePublishNow(story)}
+                    disabled={publishingId === story.id}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-orange-500/20 transition-all active:scale-95"
+                    title="Publicar esta historia inmediatamente en Meta (Instagram y Facebook)"
+                  >
+                    {publishingId === story.id ? (
+                      <>
+                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Publicando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Publicar Ahora</span>
+                      </>
+                    )}
+                  </button>
+
                   <button
                     onClick={() => onPreviewStory(story)}
                     className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
@@ -266,6 +389,22 @@ export default function StoryLibrary({
                   </button>
                 </div>
               </div>
+
+              {/* Feedback de publicación en vivo */}
+              {publishFeedback[story.id] && (
+                <div className={`mt-2.5 p-2.5 rounded-xl text-xs flex items-center gap-2 border animate-in fade-in ${
+                  publishFeedback[story.id].type === 'success'
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                    : 'bg-red-500/10 border-red-500/30 text-red-300'
+                }`}>
+                  {publishFeedback[story.id].type === 'success' ? (
+                    <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  ) : (
+                    <PauseCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  )}
+                  <span className="truncate font-medium">{publishFeedback[story.id].text}</span>
+                </div>
+              )}
             </div>
           ))}
         </div>

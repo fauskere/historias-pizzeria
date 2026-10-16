@@ -7,9 +7,10 @@ import {
   Plus, 
   Calendar as CalendarIcon, 
   CheckCircle2, 
-  PauseCircle,
-  Tag,
-  Film
+  PauseCircle, 
+  Tag, 
+  Film,
+  Zap
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
 
@@ -42,6 +43,9 @@ export default function WeeklyCalendar({
     if (selectedCategory === 'all') return true;
     return story.category === selectedCategory;
   });
+
+  // Historias a demanda (sin días fijos asignados)
+  const onDemandStories = filteredStories.filter(s => !s.days || s.days.length === 0);
 
   // Agrupar historias por día de la semana
   const storiesByDay = DAYS_OF_WEEK.reduce((acc, day) => {
@@ -260,6 +264,80 @@ export default function WeeklyCalendar({
           );
         })}
       </div>
+
+      {/* Sección de Historias A Demanda (Sin días asignados) */}
+      {onDemandStories.length > 0 && (
+        <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                <Zap className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  Historias A Demanda (Sin días fijos)
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 text-xs font-extrabold border border-amber-500/20">
+                    {onDemandStories.length}
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400">Guardadas listas para publicar con 1 clic en cualquier momento</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {onDemandStories.map(story => (
+              <div
+                key={story.id}
+                className="bg-slate-850 border border-slate-750 hover:border-slate-700 rounded-2xl p-3 flex items-center justify-between gap-3 transition-colors"
+              >
+                <div
+                  className="w-12 h-20 rounded-xl overflow-hidden bg-slate-800 flex-shrink-0 cursor-pointer border border-slate-700/80 group relative"
+                  onClick={() => onPreviewStory(story)}
+                  title="Ver y publicar"
+                >
+                  {story.mediaType === 'video' ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-orange-400 bg-slate-900 text-[10px]">
+                      <Film className="w-4 h-4" />
+                      <span>Video</span>
+                    </div>
+                  ) : (
+                    <img src={story.mediaUrl} alt={story.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  )}
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+                </div>
+
+                <div className="flex-1 min-w-0 space-y-1">
+                  <h4 className="text-xs font-bold text-slate-100 truncate" title={story.title}>
+                    {story.title}
+                  </h4>
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: story.color || '#f97316' }} />
+                    <span className="truncate">{story.categoryLabel || 'Historia'}</span>
+                  </div>
+                  <div className="pt-1">
+                    <button
+                      onClick={() => onPreviewStory(story)}
+                      className="px-2.5 py-1 rounded-lg bg-orange-500/15 text-orange-400 hover:bg-orange-500/25 border border-orange-500/30 text-xs font-bold flex items-center gap-1 transition-colors"
+                    >
+                      <Eye className="w-3 h-3" />
+                      Ver / Publicar
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => onDeleteStory(story.id)}
+                  className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-colors"
+                  title="Eliminar historia"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

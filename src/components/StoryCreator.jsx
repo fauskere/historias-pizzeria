@@ -55,14 +55,17 @@ export default function StoryCreator({ onStoryCreated, initialDay, restaurantNam
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-      setError('Por favor selecciona una imagen (JPG, PNG) o un video (MP4).');
+    const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|m4v|avi|webm|mkv|3gp)$/i.test(file.name);
+    const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|heic|heif)$/i.test(file.name);
+
+    if (!isVideo && !isImage) {
+      setError('Por favor selecciona una imagen (JPG, PNG) o un video (MP4, MOV).');
       return;
     }
 
     setError(null);
     setMediaFile(file);
-    const type = file.type.startsWith('video/') ? 'video' : 'image';
+    const type = isVideo ? 'video' : 'image';
     setMediaType(type);
 
     const reader = new FileReader();
@@ -75,7 +78,6 @@ export default function StoryCreator({ onStoryCreated, initialDay, restaurantNam
   // Toggle de días
   const toggleDay = (key) => {
     if (selectedDays.includes(key)) {
-      if (selectedDays.length === 1) return; // Al menos un día
       setSelectedDays(selectedDays.filter(d => d !== key));
     } else {
       setSelectedDays([...selectedDays, key]);
@@ -86,6 +88,7 @@ export default function StoryCreator({ onStoryCreated, initialDay, restaurantNam
   const selectAllDays = () => setSelectedDays(DAYS.map(d => d.key));
   const selectWeekends = () => setSelectedDays(['viernes', 'sabado', 'domingo']);
   const selectWeekdays = () => setSelectedDays(['lunes', 'martes', 'miercoles', 'jueves']);
+  const clearDays = () => setSelectedDays([]);
 
   // Guardar y programar historia
   const handleSubmit = async (e) => {
@@ -96,10 +99,6 @@ export default function StoryCreator({ onStoryCreated, initialDay, restaurantNam
     }
     if (!mediaPreview) {
       setError('Debes cargar una imagen o video para la historia.');
-      return;
-    }
-    if (selectedDays.length === 0) {
-      setError('Selecciona al menos un día de la semana.');
       return;
     }
 
@@ -279,7 +278,7 @@ export default function StoryCreator({ onStoryCreated, initialDay, restaurantNam
               <label className="text-sm font-semibold text-slate-200">
                 4. Días que se publicará
               </label>
-              <div className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-2 text-xs flex-wrap">
                 <button type="button" onClick={selectAllDays} className="text-orange-400 hover:underline">
                   Todos
                 </button>
@@ -290,6 +289,10 @@ export default function StoryCreator({ onStoryCreated, initialDay, restaurantNam
                 <span className="text-slate-600">•</span>
                 <button type="button" onClick={selectWeekdays} className="text-orange-400 hover:underline">
                   Lun-Jue
+                </button>
+                <span className="text-slate-600">•</span>
+                <button type="button" onClick={clearDays} className="text-amber-400 hover:underline font-semibold">
+                  Sin días (A demanda)
                 </button>
               </div>
             </div>
@@ -314,6 +317,15 @@ export default function StoryCreator({ onStoryCreated, initialDay, restaurantNam
                 );
               })}
             </div>
+
+            {selectedDays.length === 0 && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs mt-2.5 flex items-center gap-2">
+                <span>⚡</span>
+                <span>
+                  <strong>Modo A Demanda activado:</strong> La historia no tendrá días fijos asignados. Quedará lista en tu <strong>Biblioteca</strong> con un botón para publicarla al instante cuando vos quieras.
+                </span>
+              </div>
+            )}
           </div>
 
           {/* 5. Horario y Repetición */}
@@ -415,7 +427,11 @@ export default function StoryCreator({ onStoryCreated, initialDay, restaurantNam
             ) : (
               <>
                 <Check className="w-5 h-5" />
-                <span>Guardar y Programar Historia</span>
+                <span>
+                  {selectedDays.length === 0
+                    ? 'Guardar Historia (A Demanda / Sin Días Fijos)'
+                    : 'Guardar y Programar Historia'}
+                </span>
               </>
             )}
           </button>

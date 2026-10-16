@@ -142,20 +142,30 @@ export async function publishInstagramStory({ instagramAccountId, pageAccessToke
 
   const creationId = createData.id;
 
-  // Si es video, Meta requiere esperar a que procese
-  if (mediaType === 'video') {
-    let finished = false;
-    let attempts = 0;
-    while (!finished && attempts < 15) {
-      await new Promise(r => setTimeout(r, 4000));
+  // Meta procesa tanto imágenes como videos de forma asíncrona descargando el archivo desde Cloudinary.
+  // Es obligatorio esperar a que el contenedor esté en estado 'FINISHED' antes de llamar a media_publish.
+  let finished = false;
+  let attempts = 0;
+  const maxAttempts = mediaType === 'video' ? 20 : 10;
+  const delayMs = 2500;
+
+  while (!finished && attempts < maxAttempts) {
+    await new Promise(r => setTimeout(r, delayMs));
+    attempts++;
+    try {
       const statusRes = await fetch(`${GRAPH_BASE_URL}/${creationId}?fields=status_code&access_token=${encodeURIComponent(pageAccessToken)}`);
       const statusData = await statusRes.json();
+      console.log(`Estado del contenedor Instagram (${attempts}/${maxAttempts}):`, statusData);
+
       if (statusData.status_code === 'FINISHED') {
         finished = true;
       } else if (statusData.status_code === 'ERROR') {
-        throw new Error('El video no pudo ser procesado por los servidores de Meta.');
+        throw new Error('Meta no pudo procesar la historia en sus servidores.');
+      } else if (statusData.status_code === 'EXPIRED') {
+        throw new Error('El contenedor de la historia expiró.');
       }
-      attempts++;
+    } catch (err) {
+      if (err.message.includes('Meta no pudo') || err.message.includes('expiró')) throw err;
     }
   }
 
@@ -191,10 +201,11 @@ export async function publishFacebookStory({ facebookPageId, pageAccessToken, me
   }
 
   if (mediaType === 'image') {
-    // Paso 1: Subir foto sin publicar en feed
+    // Paso 1: Subir foto temporal sin publicar en feed
     const photoParams = new URLSearchParams({
       url: mediaUrl,
       published: 'false',
+      temporary: 'true',
       access_token: pageAccessToken
     });
 
@@ -205,7 +216,8 @@ export async function publishFacebookStory({ facebookPageId, pageAccessToken, me
     const photoData = await photoRes.json();
 
     if (photoData.error) {
-      throw new Error(`Facebook Photo Upload Error: ${photoData.error.message}`);
+      console.error('Facebook Photo Upload Error:', photoData.error);
+      throw new Error(photoData.error.message);
     }
 
     const photoId = photoData.id;
@@ -223,7 +235,8 @@ export async function publishFacebookStory({ facebookPageId, pageAccessToken, me
     const storyData = await storyRes.json();
 
     if (storyData.error) {
-      throw new Error(`Facebook Story Publish Error: ${storyData.error.message}`);
+      console.error('Facebook Story Publish Error:', storyData.error);
+      throw new Error(storyData.error.message);
     }
 
     return { success: true, storyId: storyData.post_id || photoId, platform: 'facebook' };

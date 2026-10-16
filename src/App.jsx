@@ -12,8 +12,11 @@ import {
   toggleStoryActive, 
   deleteStory, 
   initFirebase, 
-  getMetaSettings 
+  getMetaSettings,
+  fetchMetaSettings,
+  addPublicationLog
 } from './services/firebase';
+import { publishInstagramStory, publishFacebookStory } from './services/metaApi';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('calendar');
@@ -31,7 +34,7 @@ export default function App() {
       const fbStatus = initFirebase();
       setIsFirebaseConnected(fbStatus.initialized);
 
-      const meta = getMetaSettings();
+      const meta = await fetchMetaSettings();
       if (meta.restaurantName) {
         setRestaurantName(meta.restaurantName);
       }
@@ -48,6 +51,80 @@ export default function App() {
   useEffect(() => {
     loadInitialData();
   }, []);
+
+  // Reloj de automatización: evalúa cada 25 segundos si coincide día y hora para publicar solo
+  useEffect(() => {
+    const DAYS_ORDER = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+
+    const checkScheduledStories = async () => {
+      if (!stories || stories.length === 0) return;
+
+      const now = new Date();
+      const currentDay = DAYS_ORDER[now.getDay()];
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const currentTime = `${hours}:${minutes}`;
+      const todayDateStr = now.toISOString().slice(0, 10);
+
+      const meta = getMetaSettings();
+      if (!meta.pageAccessToken) return;
+
+      for (const story of stories) {
+        if (!story.active) continue;
+        if (!story.days || !story.days.includes(currentDay)) continue;
+        if (story.time !== currentTime) continue;
+        if (story.lastAutoPublishDate === todayDateStr) continue;
+
+        console.log(`[AutoScheduler] Disparando historia programada: "${story.title}" a las ${currentTime}`);
+        story.lastAutoPublishDate = todayDateStr;
+        await saveStory(story);
+
+        const results = [];
+        let overallSuccess = true;
+
+        if (story.platforms?.instagram && meta.instagramAccountId) {
+          try {
+            const igRes = await publishInstagramStory({
+              instagramAccountId: meta.instagramAccountId,
+              pageAccessToken: meta.pageAccessToken,
+              mediaUrl: story.mediaUrl,
+              mediaType: story.mediaType
+            });
+            results.push({ platform: 'instagram', success: true, storyId: igRes.storyId });
+          } catch (err) {
+            results.push({ platform: 'instagram', success: false, message: err.message });
+            overallSuccess = false;
+          }
+        }
+
+        if (story.platforms?.facebook && meta.facebookPageId) {
+          try {
+            const fbRes = await publishFacebookStory({
+              facebookPageId: meta.facebookPageId,
+              pageAccessToken: meta.pageAccessToken,
+              mediaUrl: story.mediaUrl,
+              mediaType: story.mediaType
+            });
+            results.push({ platform: 'facebook', success: true, storyId: fbRes.storyId });
+          } catch (err) {
+            results.push({ platform: 'facebook', success: false, message: err.message });
+            overallSuccess = false;
+          }
+        }
+
+        addPublicationLog({
+          storyTitle: `${story.title} (Automático)`,
+          storyId: story.id,
+          mediaType: story.mediaType,
+          success: overallSuccess,
+          details: results
+        });
+      }
+    };
+
+    const intervalId = setInterval(checkScheduledStories, 25000);
+    return () => clearInterval(intervalId);
+  }, [stories]);
 
   // Alternar estado activo / pausado
   const handleToggleActive = async (id, newStatus) => {
@@ -71,9 +148,15 @@ export default function App() {
 
   // Guardar nueva historia
   const handleStoryCreated = async (newStory) => {
-    const saved = await saveStory(newStory);
+    await saveStory(newStory);
     const updatedList = await getStories();
     setStories(updatedList);
+    // Redirigir automáticamente para que el usuario vea su historia creada
+    if (!newStory.days || newStory.days.length === 0) {
+      setActiveTab('library');
+    } else {
+      setActiveTab('calendar');
+    }
   };
 
   // Atajo desde el calendario: agregar historia con día pre-elegido
