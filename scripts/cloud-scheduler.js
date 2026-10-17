@@ -427,11 +427,18 @@ async function runScheduler() {
         }
       }
 
-      // Marcar historia como publicada hoy (y desactivarla si no es recurrente)
-      const isRecurring = story.repeatWeekly !== false && story.recurring !== false;
-      await markStoryPublished(story._docName, todayStr, isRecurring);
-      await savePublicationLog({ storyTitle: publishedTitle, success: true, details });
-      publishedCount++;
+      // Verificar si al menos una publicación tuvo éxito
+      const hasAnySuccess = details.some(d => d.message && d.message.includes('OK'));
+      if (hasAnySuccess) {
+        // Marcar historia como publicada hoy (y desactivarla si no es recurrente)
+        const isRecurring = story.repeatWeekly !== false && story.recurring !== false;
+        await markStoryPublished(story._docName, todayStr, isRecurring);
+        await savePublicationLog({ storyTitle: publishedTitle, success: true, details });
+        publishedCount++;
+      } else {
+        console.error(`Ninguna plataforma pudo publicar la historia "${story.title}". Reintentará en el siguiente intervalo.`);
+        await savePublicationLog({ storyTitle: publishedTitle, success: false, details });
+      }
     } catch (pubErr) {
       console.error(`Error publicando historia "${story.title}":`, pubErr.message);
       await savePublicationLog({
