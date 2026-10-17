@@ -42,9 +42,14 @@ export default function StoryCreator({
   onCancelEdit,
   initialDay, 
   folders = [],
+  categories = [],
   restaurantName = 'Pizzería María Belén' 
 }) {
   const isEditing = Boolean(storyToEdit);
+
+  const activeCategories = categories.length > 0
+    ? categories.map(c => ({ key: c.id, label: c.name, color: '#FFD700', desc: `Categoría ${c.name}` }))
+    : CATEGORIES;
 
   const [sourceType, setSourceType] = useState(
     storyToEdit?.sourceType || (storyToEdit?.folderId ? 'folder' : 'single')
@@ -53,7 +58,7 @@ export default function StoryCreator({
     storyToEdit?.folderId || (folders[0]?.id || '')
   );
   const [title, setTitle] = useState(storyToEdit?.title || '');
-  const [category, setCategory] = useState(storyToEdit?.category || 'promo');
+  const [category, setCategory] = useState(storyToEdit?.category || activeCategories[0]?.key || 'promo');
   const [selectedDays, setSelectedDays] = useState(
     storyToEdit ? (storyToEdit.days || []) : (initialDay ? [initialDay] : ['martes', 'jueves'])
   );
@@ -176,7 +181,7 @@ export default function StoryCreator({
         mediaUrl = uploadResult.url;
       }
 
-      const selectedCatObj = CATEGORIES.find(c => c.key === category);
+      const selectedCatObj = activeCategories.find(c => c.key === category) || activeCategories[0];
 
       if (isEditing && onStoryUpdated) {
         const updatedStory = {
@@ -481,7 +486,7 @@ export default function StoryCreator({
               3. Tipo de contenido
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {CATEGORIES.map(cat => {
+              {activeCategories.map(cat => {
                 const isSelected = category === cat.key;
                 return (
                   <button

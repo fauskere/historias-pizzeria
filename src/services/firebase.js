@@ -350,7 +350,9 @@ export async function saveFolder(folderData) {
   const record = {
     ...folderData,
     id,
+    packs: folderData.packs || [],
     items: folderData.items || [],
+    usedPackIds: folderData.usedPackIds || [],
     usedItemIds: folderData.usedItemIds || [],
     updatedAt: new Date().toISOString()
   };
@@ -391,16 +393,100 @@ export async function resetFolderCycle(folderId) {
   if (!target) return null;
 
   target.usedItemIds = [];
+  target.usedPackIds = [];
   target.updatedAt = new Date().toISOString();
   saveLocalFolders(folders);
 
   const { initialized } = initFirebase();
   if (initialized && db) {
     try {
-      await updateDoc(doc(db, 'folders', folderId), { usedItemIds: [] });
+      await updateDoc(doc(db, 'folders', folderId), { usedItemIds: [], usedPackIds: [] });
     } catch (err) {
       console.warn('Error reseteando ciclo de carpeta en Firestore:', err);
     }
   }
   return target;
+}
+
+// ----------------------------------------------------------------------------
+// CATEGORÍAS PERSONALIZADAS POR EL NEGOCIO
+// ----------------------------------------------------------------------------
+const LOCAL_STORAGE_KEY_CATEGORIES = 'pizzeria_categories_local';
+
+const DEFAULT_CATEGORIES = [
+  { id: 'pizzas', name: 'Pizzas' },
+  { id: 'hamburguesas', name: 'Hamburguesas' },
+  { id: 'empanadas', name: 'Empanadas' },
+  { id: 'lomitos', name: 'Lomitos' },
+  { id: 'promos', name: 'Promos / Combos' },
+  { id: 'bebidas', name: 'Bebidas / Postres' }
+];
+
+export function getLocalCategories() {
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY_CATEGORIES);
+    return raw ? JSON.parse(raw) : DEFAULT_CATEGORIES;
+  } catch {
+    return DEFAULT_CATEGORIES;
+  }
+}
+
+export function saveLocalCategories(list) {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY_CATEGORIES, JSON.stringify(list));
+  } catch (err) {
+    console.error('Error guardando categorías localmente:', err);
+  }
+}
+
+export async function getCategories() {
+  const local = getLocalCategories();
+  const { initialized } = initFirebase();
+  if (initialized && db) {
+    try {
+      const snap = await getDocs(collection(db, 'categories'));
+      const list = [];
+      snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+      if (list.length > 0) {
+        saveLocalCategories(list);
+        return list;
+      }
+    } catch (err) {
+      console.warn('Error cargando categorías de Firestore:', err);
+    }
+  }
+  return local;
+}
+
+export async function saveCategory(categoryData) {
+  const list = getLocalCategories();
+  const id = categoryData.id || `cat_${Date.now()}`;
+  const record = { ...categoryData, id };
+  const idx = list.findIndex(c => c.id === id);
+  const updated = idx >= 0 ? list.map(c => c.id === id ? record : c) : [...list, record];
+  saveLocalCategories(updated);
+
+  const { initialized } = initFirebase();
+  if (initialized && db) {
+    try {
+      await setDoc(doc(db, 'categories', id), record, { merge: true });
+    } catch (err) {
+      console.warn('Error guardando categoría en Firestore:', err);
+    }
+  }
+  return record;
+}
+
+export async function deleteCategory(id) {
+  const list = getLocalCategories().filter(c => c.id !== id);
+  saveLocalCategories(list);
+  const { initialized } = initFirebase();
+  if (initialized && db) {
+    try {
+      await deleteDoc(doc(db, 'categories', id));
+    } catch (err) {
+      console.warn('Error eliminando categoría en Firestore:', err);
+    }
+  }
+  return list;
 }

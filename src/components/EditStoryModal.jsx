@@ -32,8 +32,12 @@ const CATEGORIES = [
   { key: 'news', label: 'Novedades', color: '#c084fc', desc: 'Lanzamientos, eventos' }
 ];
 
-export default function EditStoryModal({ story, onClose, onSave, folders = [] }) {
+export default function EditStoryModal({ story, onClose, onSave, folders = [], categories = [] }) {
   if (!story) return null;
+
+  const activeCategories = categories.length > 0
+    ? categories.map(c => ({ key: c.id, label: c.name, color: '#FFD700', desc: c.name }))
+    : CATEGORIES;
 
   const [sourceType, setSourceType] = useState(
     story.sourceType || (story.folderId ? 'folder' : 'single')
@@ -42,7 +46,7 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [] })
     story.folderId || (folders[0]?.id || '')
   );
   const [title, setTitle] = useState(story.title || '');
-  const [category, setCategory] = useState(story.category || 'promo');
+  const [category, setCategory] = useState(story.category || activeCategories[0]?.key || 'promo');
   const [selectedDays, setSelectedDays] = useState(story.days || []);
   const [time, setTime] = useState(story.time || '19:30');
   const [repeatWeekly, setRepeatWeekly] = useState(story.repeatWeekly !== false);
@@ -127,7 +131,7 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [] })
         mediaUrl = uploadResult.url;
       }
 
-      const selectedCatObj = CATEGORIES.find(c => c.key === category);
+      const selectedCatObj = activeCategories.find(c => c.key === category) || activeCategories[0];
 
       const updatedStory = {
         ...story,

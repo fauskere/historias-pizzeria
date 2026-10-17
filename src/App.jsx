@@ -20,7 +20,10 @@ import {
   getFolders,
   saveFolder,
   deleteFolder,
-  resetFolderCycle
+  resetFolderCycle,
+  getCategories,
+  saveCategory,
+  deleteCategory
 } from './services/firebase';
 import { publishInstagramStory, publishFacebookStory } from './services/metaApi';
 
@@ -28,6 +31,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('calendar');
   const [stories, setStories] = useState([]);
   const [folders, setFolders] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [previewStory, setPreviewStory] = useState(null);
   const [editingStory, setEditingStory] = useState(null);
@@ -35,7 +39,7 @@ export default function App() {
   const [isFirebaseConnected, setIsFirebaseConnected] = useState(false);
   const [restaurantName, setRestaurantName] = useState('Pizzería María Belén');
 
-  // Cargar historias y carpetas al iniciar
+  // Cargar historias, carpetas y categorías al iniciar
   const loadInitialData = async () => {
     try {
       setLoading(true);
@@ -47,14 +51,16 @@ export default function App() {
         setRestaurantName(meta.restaurantName);
       }
 
-      const [list, fList] = await Promise.all([
+      const [list, fList, catList] = await Promise.all([
         getStories(),
-        getFolders()
+        getFolders(),
+        getCategories()
       ]);
       setStories(list);
       setFolders(fList);
+      setCategories(catList);
     } catch (err) {
-      console.error('Error cargando historias y carpetas iniciales:', err);
+      console.error('Error cargando historias, carpetas y categorías iniciales:', err);
     } finally {
       setLoading(false);
     }
@@ -213,6 +219,19 @@ export default function App() {
     setFolders(updated);
   };
 
+  // Handlers para categorías personalizadas
+  const handleSaveCategory = async (catData) => {
+    await saveCategory(catData);
+    const updated = await getCategories();
+    setCategories(updated);
+  };
+
+  const handleDeleteCategory = async (catId) => {
+    await deleteCategory(catId);
+    const updated = await getCategories();
+    setCategories(updated);
+  };
+
   return (
     <div className="min-h-screen bg-[#121212] text-white flex flex-col font-sans selection:bg-[#FFD700] selection:text-black">
       {/* Top Navbar */}
@@ -248,9 +267,12 @@ export default function App() {
             {activeTab === 'folders' && (
               <FolderManager
                 folders={folders}
+                categories={categories}
                 onSave={handleSaveFolder}
                 onDelete={handleDeleteFolder}
                 onResetCycle={handleResetFolderCycle}
+                onSaveCategory={handleSaveCategory}
+                onDeleteCategory={handleDeleteCategory}
               />
             )}
 
@@ -260,6 +282,7 @@ export default function App() {
                 initialDay={creatorInitialDay}
                 restaurantName={restaurantName}
                 folders={folders}
+                categories={categories}
               />
             )}
 
@@ -311,6 +334,7 @@ export default function App() {
           onClose={() => setEditingStory(null)}
           onSave={handleStoryUpdated}
           folders={folders}
+          categories={categories}
         />
       )}
     </div>

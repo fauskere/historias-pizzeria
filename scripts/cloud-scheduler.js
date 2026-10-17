@@ -319,8 +319,7 @@ async function runScheduler() {
 
     try {
       const details = [];
-      let mediaToPublish = story.mediaUrl;
-      let mediaTypeToPublish = story.mediaType || 'image';
+      let mediaItemsToPublish = [{ url: story.mediaUrl, mediaType: story.mediaType || 'image', name: story.title }];
       let publishedTitle = story.title;
 
       // Si la historia está vinculada a una carpeta rotativa
@@ -330,72 +329,101 @@ async function runScheduler() {
           if (folderRes.ok) {
             const folderDoc = await folderRes.json();
             const folderData = parseFirestoreDoc(folderDoc);
-            const items = Array.isArray(folderData?.items) ? folderData.items : [];
-            const usedIds = Array.isArray(folderData?.usedItemIds) ? folderData.usedItemIds : [];
 
-            if (items.length > 0) {
-              let available = items.filter(it => !usedIds.includes(it.id));
+            // Obtener packs de historias o convertir items sueltos existentes
+            let packs = Array.isArray(folderData?.packs) && folderData.packs.length > 0
+              ? folderData.packs
+              : (Array.isArray(folderData?.items) && folderData.items.length > 0
+                  ? folderData.items.map(it => ({ id: it.id, name: it.name, images: [it] }))
+                  : []);
+
+            const usedPackIds = Array.isArray(folderData?.usedPackIds)
+              ? folderData.usedPackIds
+              : (Array.isArray(folderData?.usedItemIds) ? folderData.usedItemIds : []);
+
+            if (packs.length > 0) {
+              let availablePacks = packs.filter(p => !usedPackIds.includes(p.id));
               let cycleReset = false;
-              if (available.length === 0) {
-                console.log(`[Carpeta ${folderData.name || ''}] Se completó el ciclo. Reiniciando pool aleatorio...`);
-                available = [...items];
+              if (availablePacks.length === 0) {
+                console.log(`[Carpeta ${folderData.name || ''}] Ciclo completado. Reiniciando packs...`);
+                availablePacks = [...packs];
                 cycleReset = true;
               }
 
-              const chosen = available[Math.floor(Math.random() * available.length)];
-              mediaToPublish = chosen.url;
-              mediaTypeToPublish = chosen.mediaType || 'image';
-              publishedTitle = `${story.title} [📁 ${folderData.name || 'Carpeta'}: ${chosen.name || 'Foto'}]`;
+              const chosenPack = availablePacks[Math.floor(Math.random() * availablePacks.length)];
+              const sortedImages = (chosenPack.images || []).sort((a, b) => (a.order || 0) - (b.order || 0));
 
-              const nextUsed = cycleReset ? [chosen.id] : [...usedIds, chosen.id];
-              const updateFolderUrl = `https://firestore.googleapis.com/v1/${folderDoc.name}?updateMask.fieldPaths=usedItemIds`;
-              await fetch(updateFolderUrl, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  fields: {
-                    usedItemIds: {
-                      arrayValue: {
-                        values: nextUsed.map(id => ({ stringValue: id }))
+              if (sortedImages.length > 0) {
+                mediaItemsToPublish = sortedImages;
+                publishedTitle = `${story.title} [📁 ${folderData.name || 'Carpeta'} - Pack: "${chosenPack.name}" (${sortedImages.length} fotos en orden)]`;
+
+                const nextUsedPacks = cycleReset ? [chosenPack.id] : [...usedPackIds, chosenPack.id];
+                const updateFolderUrl = `https://firestore.googleapis.com/v1/${folderDoc.name}?updateMask.fieldPaths=usedPackIds`;
+                await fetch(updateFolderUrl, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    fields: {
+                      usedPackIds: {
+                        arrayValue: {
+                          values: nextUsedPacks.map(id => ({ stringValue: id }))
+                        }
                       }
                     }
-                  }
-                })
-              });
-              console.log(`[Carpeta] Selección aleatoria: "${chosen.name || chosen.id}" (${nextUsed.length}/${items.length} del ciclo emitidas)`);
+                  })
+                });
+                console.log(`[Carpeta] Pack seleccionado: "${chosenPack.name}" con ${sortedImages.length} historias (${nextUsedPacks.length}/${packs.length} packs emitidos)`);
+              }
             }
           }
         } catch (fErr) {
-          console.warn('[Carpeta] Error seleccionando foto de carpeta, usando fallback:', fErr.message);
+          console.warn('[Carpeta] Error seleccionando pack de carpeta:', fErr.message);
         }
       }
 
-      if (!mediaToPublish) {
-        throw new Error('No se encontró ninguna imagen para publicar (la carpeta está vacía o sin imagen).');
+      if (!mediaItemsToPublish || mediaItemsToPublish.length === 0 || !mediaItemsToPublish[0].url) {
+        throw new Error('No se encontró ninguna imagen para publicar en la historia.');
       }
 
-      if (story.platforms?.instagram && instagramAccountId) {
-        const igRes = await publishInstagramStory({
-          instagramAccountId,
-          pageAccessToken,
-          mediaUrl: mediaToPublish,
-          mediaType: mediaTypeToPublish
-        });
-        details.push({ platform: 'instagram', message: `Publicada con éxito (ID: ${igRes.storyId})` });
-      }
+      // Publicar cada historia en orden respetando la secuencia del pack
+      for (let i = 0; i < mediaItemsToPublish.length; i++) {
+        const item = mediaItemsToPublish[i];
+        console.log(`-> Publicando historia ${i + 1} de ${mediaItemsToPublish.length}: ${item.name || ''}...`);
 
-      if (story.platforms?.facebook && facebookPageId) {
-        try {
-          const fbRes = await publishFacebookStory({
-            facebookPageId,
-            pageAccessToken,
-            mediaUrl: mediaToPublish,
-            mediaType: mediaTypeToPublish
-          });
-          details.push({ platform: 'facebook', message: `Publicada con éxito (ID: ${fbRes.storyId})` });
-        } catch (fbErr) {
-          console.warn('[Facebook Aviso]:', fbErr.message);
-          details.push({ platform: 'facebook', message: `Error: ${fbErr.message}` });
+        if (story.platforms?.instagram && instagramAccountId) {
+          try {
+            const igRes = await publishInstagramStory({
+              instagramAccountId,
+              pageAccessToken,
+              mediaUrl: item.url,
+              mediaType: item.mediaType || 'image'
+            });
+            details.push({ platform: 'instagram', message: `Foto ${i + 1} OK (ID: ${igRes.storyId})` });
+          } catch (igErr) {
+            console.error('[Instagram Error]:', igErr.message);
+            details.push({ platform: 'instagram', message: `Foto ${i + 1} Error: ${igErr.message}` });
+          }
+        }
+
+        if (story.platforms?.facebook && facebookPageId) {
+          try {
+            const fbRes = await publishFacebookStory({
+              facebookPageId,
+              pageAccessToken,
+              mediaUrl: item.url,
+              mediaType: item.mediaType || 'image'
+            });
+            details.push({ platform: 'facebook', message: `Foto ${i + 1} OK (ID: ${fbRes.storyId})` });
+          } catch (fbErr) {
+            console.warn('[Facebook Aviso]:', fbErr.message);
+            details.push({ platform: 'facebook', message: `Foto ${i + 1} Error: ${fbErr.message}` });
+          }
+        }
+
+        // Si hay más fotos en el pack, esperar 2.5s antes de subir la siguiente
+        if (i < mediaItemsToPublish.length - 1) {
+          console.log('Esperando 2.5s antes de subir la siguiente historia del pack...');
+          await new Promise(resolve => setTimeout(resolve, 2500));
         }
       }
 
