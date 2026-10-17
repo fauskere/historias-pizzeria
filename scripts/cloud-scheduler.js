@@ -330,49 +330,81 @@ async function runScheduler() {
             const folderDoc = await folderRes.json();
             const folderData = parseFirestoreDoc(folderDoc);
 
-            // Obtener packs de historias o convertir items sueltos existentes
-            let packs = Array.isArray(folderData?.packs) && folderData.packs.length > 0
-              ? folderData.packs
-              : (Array.isArray(folderData?.items) && folderData.items.length > 0
-                  ? folderData.items.map(it => ({ id: it.id, name: it.name, images: [it] }))
-                  : []);
+            const isSingleMode = folderData?.mode === 'single' || (!folderData?.packs || folderData.packs.length === 0);
 
-            const usedPackIds = Array.isArray(folderData?.usedPackIds)
-              ? folderData.usedPackIds
-              : (Array.isArray(folderData?.usedItemIds) ? folderData.usedItemIds : []);
-
-            if (packs.length > 0) {
-              let availablePacks = packs.filter(p => !usedPackIds.includes(p.id));
+            if (isSingleMode && Array.isArray(folderData?.items) && folderData.items.length > 0) {
+              const items = folderData.items;
+              const usedItemIds = Array.isArray(folderData?.usedItemIds) ? folderData.usedItemIds : [];
+              let availableItems = items.filter(it => !usedItemIds.includes(it.id));
               let cycleReset = false;
-              if (availablePacks.length === 0) {
-                console.log(`[Carpeta ${folderData.name || ''}] Ciclo completado. Reiniciando packs...`);
-                availablePacks = [...packs];
+              if (availableItems.length === 0) {
+                console.log(`[Carpeta ${folderData.name || ''}] Ciclo de fotos completado. Reiniciando...`);
+                availableItems = [...items];
                 cycleReset = true;
               }
 
-              const chosenPack = availablePacks[Math.floor(Math.random() * availablePacks.length)];
-              const sortedImages = (chosenPack.images || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+              const chosen = availableItems[Math.floor(Math.random() * availableItems.length)];
+              mediaItemsToPublish = [{
+                url: chosen.url,
+                mediaType: chosen.mediaType || 'image',
+                name: chosen.name || 'Foto'
+              }];
+              publishedTitle = `${story.title} [📁 ${folderData.name || 'Carpeta'} - Foto: "${chosen.name || 'Individual'}"]`;
 
-              if (sortedImages.length > 0) {
-                mediaItemsToPublish = sortedImages;
-                publishedTitle = `${story.title} [📁 ${folderData.name || 'Carpeta'} - Pack: "${chosenPack.name}" (${sortedImages.length} fotos en orden)]`;
-
-                const nextUsedPacks = cycleReset ? [chosenPack.id] : [...usedPackIds, chosenPack.id];
-                const updateFolderUrl = `https://firestore.googleapis.com/v1/${folderDoc.name}?updateMask.fieldPaths=usedPackIds`;
-                await fetch(updateFolderUrl, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    fields: {
-                      usedPackIds: {
-                        arrayValue: {
-                          values: nextUsedPacks.map(id => ({ stringValue: id }))
-                        }
+              const nextUsed = cycleReset ? [chosen.id] : [...usedItemIds, chosen.id];
+              const updateFolderUrl = `https://firestore.googleapis.com/v1/${folderDoc.name}?updateMask.fieldPaths=usedItemIds`;
+              await fetch(updateFolderUrl, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  fields: {
+                    usedItemIds: {
+                      arrayValue: {
+                        values: nextUsed.map(id => ({ stringValue: id }))
                       }
                     }
-                  })
-                });
-                console.log(`[Carpeta] Pack seleccionado: "${chosenPack.name}" con ${sortedImages.length} historias (${nextUsedPacks.length}/${packs.length} packs emitidos)`);
+                  }
+                })
+              });
+              console.log(`[Carpeta Individual] Foto seleccionada: "${chosen.name}" (${nextUsed.length}/${items.length} fotos emitidas)`);
+            } else {
+              // Obtener packs de historias
+              const packs = Array.isArray(folderData?.packs) ? folderData.packs : [];
+              const usedPackIds = Array.isArray(folderData?.usedPackIds) ? folderData.usedPackIds : [];
+
+              if (packs.length > 0) {
+                let availablePacks = packs.filter(p => !usedPackIds.includes(p.id));
+                let cycleReset = false;
+                if (availablePacks.length === 0) {
+                  console.log(`[Carpeta ${folderData.name || ''}] Ciclo de packs completado. Reiniciando...`);
+                  availablePacks = [...packs];
+                  cycleReset = true;
+                }
+
+                const chosenPack = availablePacks[Math.floor(Math.random() * availablePacks.length)];
+                const sortedImages = (chosenPack.images || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+
+                if (sortedImages.length > 0) {
+                  mediaItemsToPublish = sortedImages;
+                  publishedTitle = `${story.title} [📁 ${folderData.name || 'Carpeta'} - Pack: "${chosenPack.name}" (${sortedImages.length} fotos en orden)]`;
+
+                  const nextUsedPacks = cycleReset ? [chosenPack.id] : [...usedPackIds, chosenPack.id];
+                  const updateFolderUrl = `https://firestore.googleapis.com/v1/${folderDoc.name}?updateMask.fieldPaths=usedPackIds`;
+                  await fetch(updateFolderUrl, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      fields: {
+                        usedPackIds: {
+                          arrayValue: {
+                            values: nextUsedPacks.map(id => ({ stringValue: id }))
+                          }
+                        }
+                      }
+                    })
+                  });
+                  console.log(`[Carpeta] Pack seleccionado: "${chosenPack.name}" con ${sortedImages.length} historias (${nextUsedPacks.length}/${packs.length} packs emitidos)`);
+                }
               }
             }
           }

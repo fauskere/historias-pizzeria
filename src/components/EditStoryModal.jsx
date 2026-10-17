@@ -282,7 +282,9 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
                         <div className="min-w-0 flex-1">
                           <p className="text-xs font-bold truncate text-white">{f.name}</p>
                           <p className="text-[10px] text-[#888888]">
-                            {fInfo.packsCount} {fInfo.packsCount === 1 ? 'pack' : 'packs'} ({fInfo.count} fotos)
+                            {fInfo.isSingle 
+                              ? `${fInfo.count} fotos individuales` 
+                              : `${fInfo.packsCount} ${fInfo.packsCount === 1 ? 'pack' : 'packs'} (${fInfo.count} fotos)`}
                           </p>
                         </div>
                         {isSel && <Check className="w-3.5 h-3.5 text-[#FFD700]" />}

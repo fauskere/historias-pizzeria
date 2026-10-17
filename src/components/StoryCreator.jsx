@@ -36,11 +36,12 @@ const CATEGORIES = [
 ];
 
 export function getFolderMediaInfo(folder) {
-  if (!folder) return { count: 0, packsCount: 0, previewUrl: '', mediaType: 'image', hasMedia: false };
+  if (!folder) return { count: 0, packsCount: 0, previewUrl: '', mediaType: 'image', hasMedia: false, isSingle: true };
   const packs = Array.isArray(folder.packs) ? folder.packs : [];
   const items = Array.isArray(folder.items) ? folder.items : [];
+  const isSingle = folder.mode === 'single' || (packs.length === 0 && items.length > 0);
 
-  if (packs.length > 0) {
+  if (!isSingle && packs.length > 0) {
     const totalImgs = packs.reduce((acc, p) => acc + (p.images?.length || 0), 0);
     const firstImg = packs.find(p => p.images?.length > 0)?.images[0];
     return {
@@ -48,7 +49,8 @@ export function getFolderMediaInfo(folder) {
       packsCount: packs.length,
       previewUrl: firstImg?.url || '',
       mediaType: firstImg?.mediaType || 'image',
-      hasMedia: totalImgs > 0
+      hasMedia: totalImgs > 0,
+      isSingle: false
     };
   }
 
@@ -57,7 +59,8 @@ export function getFolderMediaInfo(folder) {
     packsCount: items.length,
     previewUrl: items[0]?.url || '',
     mediaType: items[0]?.mediaType || 'image',
-    hasMedia: items.length > 0
+    hasMedia: items.length > 0,
+    isSingle: true
   };
 }
 
@@ -402,8 +405,11 @@ export default function StoryCreator({
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-extrabold text-white truncate">{f.name}</p>
-                            <p className="text-[11px] text-[#888888]">{fInfo.packsCount} {fInfo.packsCount === 1 ? 'pack' : 'packs'} ({fInfo.count} fotos)</p>
+                            <p className="text-[11px] text-[#888888]">
+                              {fInfo.isSingle 
+                                ? `${fInfo.count} fotos individuales` 
+                                : `${fInfo.packsCount} ${fInfo.packsCount === 1 ? 'pack' : 'packs'} (${fInfo.count} fotos)`}
+                            </p>
                           </div>
                           {isSel && <Check className="w-4 h-4 text-[#FFD700] shrink-0" />}
                         </div>
