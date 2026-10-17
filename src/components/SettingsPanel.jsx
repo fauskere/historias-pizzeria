@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
   Key, 
@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
 import { testMetaConnection } from '../services/metaApi';
-import { getMetaSettings, saveMetaSettings, getSavedFirebaseConfig, saveFirebaseConfig } from '../services/firebase';
+import { getMetaSettings, fetchMetaSettings, saveMetaSettings, getSavedFirebaseConfig, saveFirebaseConfig } from '../services/firebase';
 
 export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }) {
   const [metaSettings, setMetaState] = useState(getMetaSettings());
@@ -22,6 +22,14 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
   const [metaTesting, setMetaTesting] = useState(false);
   const [metaTestResult, setMetaTestResult] = useState(null);
   const [metaSaved, setMetaSaved] = useState(false);
+
+  useEffect(() => {
+    fetchMetaSettings().then(settings => {
+      if (settings && settings.pageAccessToken) {
+        setMetaState(settings);
+      }
+    });
+  }, []);
 
   const savedFb = getSavedFirebaseConfig() || {
     apiKey: '',

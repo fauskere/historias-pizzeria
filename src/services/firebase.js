@@ -231,26 +231,22 @@ export async function saveMetaSettings(settings) {
 }
 
 export async function fetchMetaSettings() {
-  const local = getMetaSettings();
-  if (local.pageAccessToken) {
-    saveMetaSettings(local); // Sincroniza en background
-    return local;
-  }
-
   const { initialized } = initFirebase();
   if (initialized && db) {
     try {
       const snap = await getDoc(doc(db, 'settings', 'meta'));
       if (snap.exists()) {
-        const data = snap.data();
-        localStorage.setItem(LOCAL_STORAGE_KEY_SETTINGS, JSON.stringify(data));
-        return data;
+        const remoteData = snap.data();
+        if (remoteData?.pageAccessToken) {
+          localStorage.setItem(LOCAL_STORAGE_KEY_SETTINGS, JSON.stringify(remoteData));
+          return remoteData;
+        }
       }
     } catch (err) {
       console.warn('Error fetching meta settings from firestore:', err);
     }
   }
-  return local;
+  return getMetaSettings();
 }
 
 // Logs de publicación sincronizados con Firestore
