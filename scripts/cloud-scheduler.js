@@ -142,19 +142,25 @@ async function publishFacebookStory({ facebookPageId, pageAccessToken, mediaUrl,
 }
 
 // Actualizar en Firestore la fecha de última publicación para no duplicar
-async function markStoryPublished(storyDocName, todayStr) {
+async function markStoryPublished(storyDocName, todayStr, recurring) {
   try {
-    const updateUrl = `https://firestore.googleapis.com/v1/${storyDocName}?updateMask.fieldPaths=lastAutoPublishDate`;
+    let updateMask = 'updateMask.fieldPaths=lastAutoPublishDate';
+    const fields = {
+      lastAutoPublishDate: { stringValue: todayStr }
+    };
+
+    if (recurring === false) {
+      updateMask += '&updateMask.fieldPaths=active';
+      fields.active = { booleanValue: false };
+    }
+
+    const updateUrl = `https://firestore.googleapis.com/v1/${storyDocName}?${updateMask}`;
     await fetch(updateUrl, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fields: {
-          lastAutoPublishDate: { stringValue: todayStr }
-        }
-      })
+      body: JSON.stringify({ fields })
     });
-    console.log(`[Firestore] Historia actualizada con marca de fecha: ${todayStr}`);
+    console.log(`[Firestore] Historia actualizada con fecha: ${todayStr}${recurring === false ? ' (desactivada por ser publicación única)' : ''}`);
   } catch (err) {
     console.warn('[Firestore] Error marcando fecha de publicación:', err);
   }
@@ -200,10 +206,10 @@ async function runScheduler() {
 
   console.log(`Hora actual en Argentina: ${currentTimeStr} hs (${currentDay}, fecha: ${todayStr})`);
 
-  // 2. Obtener credenciales de Meta desde Firestore o variables de entorno
-  let pageAccessToken = process.env.META_PAGE_ACCESS_TOKEN || '';
-  let instagramAccountId = process.env.META_INSTAGRAM_ACCOUNT_ID || '';
-  let facebookPageId = process.env.META_FACEBOOK_PAGE_ID || '';
+  // 2. Obtener credenciales de Meta desde Firestore (prioridad absoluta) o variables de entorno
+  let pageAccessToken = '';
+  let instagramAccountId = '';
+  let facebookPageId = '';
 
   try {
     const metaRes = await fetch(`${FIRESTORE_BASE}/settings/meta`);
@@ -211,14 +217,19 @@ async function runScheduler() {
       const metaDoc = await metaRes.json();
       const metaData = parseFirestoreDoc(metaDoc);
       if (metaData) {
-        if (!pageAccessToken && metaData.pageAccessToken) pageAccessToken = metaData.pageAccessToken;
-        if (!instagramAccountId && metaData.instagramAccountId) instagramAccountId = metaData.instagramAccountId;
-        if (!facebookPageId && metaData.facebookPageId) facebookPageId = metaData.facebookPageId;
+        if (metaData.pageAccessToken) pageAccessToken = metaData.pageAccessToken;
+        if (metaData.instagramAccountId) instagramAccountId = metaData.instagramAccountId;
+        if (metaData.facebookPageId) facebookPageId = metaData.facebookPageId;
       }
     }
   } catch (err) {
     console.warn('No se pudo leer settings/meta de Firestore:', err.message);
   }
+
+  // De respaldo, si no estaban en Firestore, usar variables de entorno
+  if (!pageAccessToken) pageAccessToken = process.env.META_PAGE_ACCESS_TOKEN || '';
+  if (!instagramAccountId) instagramAccountId = process.env.META_INSTAGRAM_ACCOUNT_ID || '';
+  if (!facebookPageId) facebookPageId = process.env.META_FACEBOOK_PAGE_ID || '';
 
   if (!pageAccessToken) {
     console.error('ERROR: No se encontró ningún Page Access Token configurado.');
@@ -237,6 +248,9 @@ async function runScheduler() {
   const rawDocs = storiesData.documents || [];
   const stories = rawDocs.map(parseFirestoreDoc).filter(Boolean);
   console.log(`Se encontraron ${stories.length} historias en la base de datos.`);
+
+  // Ordenar historias de menor a mayor por hora para respetar el orden cronológico
+  stories.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
   let publishedCount = 0;
 
@@ -286,12 +300,13 @@ async function runScheduler() {
         }
       }
 
-      // Marcar historia como publicada hoy
-      await markStoryPublished(story._docName, todayStr);
+      // Marcar historia como publicada hoy (y desactivarla si no es recurrente)
+      await markStoryPublished(story._docName, todayStr, story.recurring);
       publishedCount++;
     } catch (pubErr) {
       console.error(`Error publicando historia "${story.title}":`, pubErr.message);
     }
+  }
   }
 
   console.log(`--- PROCESO FINALIZADO: ${publishedCount} historia(s) publicada(s) ---`);
