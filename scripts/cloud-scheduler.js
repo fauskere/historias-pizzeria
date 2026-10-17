@@ -150,8 +150,9 @@ async function markStoryPublished(storyDocName, todayStr, recurring) {
     };
 
     if (recurring === false) {
-      updateMask += '&updateMask.fieldPaths=active';
+      updateMask += '&updateMask.fieldPaths=active&updateMask.fieldPaths=days';
       fields.active = { booleanValue: false };
+      fields.days = { arrayValue: { values: [] } };
     }
 
     const updateUrl = `https://firestore.googleapis.com/v1/${storyDocName}?${updateMask}`;
@@ -160,7 +161,7 @@ async function markStoryPublished(storyDocName, todayStr, recurring) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fields })
     });
-    console.log(`[Firestore] Historia actualizada con fecha: ${todayStr}${recurring === false ? ' (desactivada por ser publicación única)' : ''}`);
+    console.log(`[Firestore] Historia actualizada con fecha: ${todayStr}${recurring === false ? ' (desactivada y pasada a Historias a Demanda)' : ''}`);
   } catch (err) {
     console.warn('[Firestore] Error marcando fecha de publicación:', err);
   }
