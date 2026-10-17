@@ -1,6 +1,6 @@
 // Configuración y servicios de Firebase con soporte offline / fallback local
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, getDoc, doc, setDoc, deleteDoc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, getDoc, doc, setDoc, deleteDoc, updateDoc, addDoc, query, orderBy, limit } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { uploadToCloudinary } from './cloudinary';
 
@@ -253,7 +253,7 @@ export async function fetchMetaSettings() {
   return local;
 }
 
-// Logs de publicación
+// Logs de publicación sincronizados con Firestore
 export function getPublicationLogs() {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY_LOGS);
@@ -263,9 +263,39 @@ export function getPublicationLogs() {
   }
 }
 
-export function addPublicationLog(logEntry) {
+export async function fetchPublicationLogs() {
+  const local = getPublicationLogs();
+  const { initialized } = initFirebase();
+  if (initialized && db) {
+    try {
+      const q = query(collection(db, 'history'), orderBy('timestamp', 'desc'), limit(50));
+      const snap = await getDocs(q);
+      const remoteLogs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (remoteLogs.length > 0) {
+        localStorage.setItem(LOCAL_STORAGE_KEY_LOGS, JSON.stringify(remoteLogs));
+        return remoteLogs;
+      }
+    } catch (err) {
+      console.warn('Error al cargar historial desde Firestore:', err);
+    }
+  }
+  return local;
+}
+
+export async function addPublicationLog(logEntry) {
   const current = getPublicationLogs();
-  const updated = [{ id: 'log_' + Date.now(), timestamp: new Date().toISOString(), ...logEntry }, ...current];
+  const newEntry = { id: 'log_' + Date.now(), timestamp: new Date().toISOString(), ...logEntry };
+  const updated = [newEntry, ...current];
   localStorage.setItem(LOCAL_STORAGE_KEY_LOGS, JSON.stringify(updated.slice(0, 50)));
+
+  const { initialized } = initFirebase();
+  if (initialized && db) {
+    try {
+      await addDoc(collection(db, 'history'), newEntry);
+    } catch (err) {
+      console.warn('Error guardando log en Firestore:', err);
+    }
+  }
+
   return updated;
 }

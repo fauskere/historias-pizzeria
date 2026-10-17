@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   History, 
   Send, 
@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
 
-import { getPublicationLogs, addPublicationLog, getMetaSettings } from '../services/firebase';
+import { getPublicationLogs, fetchPublicationLogs, addPublicationLog, getMetaSettings } from '../services/firebase';
 import { publishInstagramStory, publishFacebookStory } from '../services/metaApi';
 
 export default function PublicationLogs({ stories }) {
@@ -19,6 +19,14 @@ export default function PublicationLogs({ stories }) {
   const [selectedStoryId, setSelectedStoryId] = useState(stories[0]?.id || '');
   const [publishing, setPublishing] = useState(false);
   const [publishResult, setPublishResult] = useState(null);
+
+  useEffect(() => {
+    fetchPublicationLogs().then(remoteLogs => {
+      if (remoteLogs && remoteLogs.length > 0) {
+        setLogs(remoteLogs);
+      }
+    });
+  }, []);
 
   // Ejecutar prueba de publicación inmediata
   const handleTestPublish = async () => {

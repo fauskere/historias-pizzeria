@@ -167,6 +167,40 @@ async function markStoryPublished(storyDocName, todayStr, recurring) {
   }
 }
 
+// Guardar registro de publicación en Firestore para la pestaña Historial
+async function savePublicationLog({ storyTitle, success, details = [] }) {
+  try {
+    const logUrl = `${FIRESTORE_BASE}/history`;
+    await fetch(logUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fields: {
+          storyTitle: { stringValue: storyTitle },
+          success: { booleanValue: success },
+          timestamp: { stringValue: new Date().toISOString() },
+          type: { stringValue: 'auto' },
+          details: {
+            arrayValue: {
+              values: details.map(d => ({
+                mapValue: {
+                  fields: {
+                    platform: { stringValue: d.platform || 'general' },
+                    message: { stringValue: d.message || '' }
+                  }
+                }
+              }))
+            }
+          }
+        }
+      })
+    });
+    console.log('[Firestore] Registro guardado en la colección historial.');
+  } catch (err) {
+    console.warn('[Firestore] Error guardando historial:', err.message);
+  }
+}
+
 async function runScheduler() {
   console.log('--- INICIANDO ROBOT AUTOMÁTICO DE HISTORIAS ---');
 
@@ -279,34 +313,45 @@ async function runScheduler() {
     console.log(`>>> EJECUTANDO PUBLICACIÓN: "${story.title}" (Programada: ${story.time} hs, Actual: ${currentTimeStr} hs)`);
 
     try {
+      const details = [];
+
       if (story.platforms?.instagram && instagramAccountId) {
-        await publishInstagramStory({
+        const igRes = await publishInstagramStory({
           instagramAccountId,
           pageAccessToken,
           mediaUrl: story.mediaUrl,
           mediaType: story.mediaType || 'image'
         });
+        details.push({ platform: 'instagram', message: `Publicada con éxito (ID: ${igRes.storyId})` });
       }
 
       if (story.platforms?.facebook && facebookPageId) {
         try {
-          await publishFacebookStory({
+          const fbRes = await publishFacebookStory({
             facebookPageId,
             pageAccessToken,
             mediaUrl: story.mediaUrl,
             mediaType: story.mediaType || 'image'
           });
+          details.push({ platform: 'facebook', message: `Publicada con éxito (ID: ${fbRes.storyId})` });
         } catch (fbErr) {
           console.warn('[Facebook Aviso]:', fbErr.message);
+          details.push({ platform: 'facebook', message: `Error: ${fbErr.message}` });
         }
       }
 
       // Marcar historia como publicada hoy (y desactivarla si no es recurrente)
       const isRecurring = story.repeatWeekly !== false && story.recurring !== false;
       await markStoryPublished(story._docName, todayStr, isRecurring);
+      await savePublicationLog({ storyTitle: story.title, success: true, details });
       publishedCount++;
     } catch (pubErr) {
       console.error(`Error publicando historia "${story.title}":`, pubErr.message);
+      await savePublicationLog({
+        storyTitle: story.title,
+        success: false,
+        details: [{ platform: 'meta', message: pubErr.message }]
+      });
     }
   }
 
