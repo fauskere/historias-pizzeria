@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
 import { uploadStoryMedia } from '../services/firebase';
+import { getFolderMediaInfo } from './StoryCreator';
 
 const DAYS = [
   { key: 'lunes', label: 'Lunes', short: 'L' },
@@ -105,6 +106,11 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
         setError('Debes seleccionar una carpeta de productos.');
         return;
       }
+      const folderMedia = getFolderMediaInfo(currentFolder);
+      if (!folderMedia.hasMedia) {
+        setError(`La carpeta "${currentFolder.name}" aún no tiene fotos ni packs. Subí contenido en la pestaña "Carpetas" primero.`);
+        return;
+      }
     } else if (!mediaPreview && !mediaFile) {
       setError('La historia debe contener una imagen o video.');
       return;
@@ -120,8 +126,9 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
       let folderName = null;
 
       if (sourceType === 'folder' && currentFolder) {
-        mediaUrl = currentFolder.items?.[0]?.url || story.mediaUrl;
-        finalMediaType = currentFolder.items?.[0]?.mediaType || 'image';
+        const folderMedia = getFolderMediaInfo(currentFolder);
+        mediaUrl = folderMedia.previewUrl || story.mediaUrl;
+        finalMediaType = folderMedia.mediaType || 'image';
         folderId = currentFolder.id;
         folderName = currentFolder.name;
       } else if (mediaFile) {
@@ -254,6 +261,7 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {folders.map(f => {
                     const isSel = (selectedFolderId || folders[0]?.id) === f.id;
+                    const fInfo = getFolderMediaInfo(f);
                     return (
                       <div
                         key={f.id}
@@ -264,10 +272,18 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
                             : 'bg-[#121212] border-[rgba(255,255,255,0.08)] text-[#AAAAAA] hover:text-white'
                         }`}
                       >
-                        <Folder className="w-4 h-4 text-[#FFD700] shrink-0" />
+                        <div className="w-8 h-8 rounded-lg bg-black/40 overflow-hidden flex items-center justify-center shrink-0">
+                          {fInfo.previewUrl ? (
+                            <img src={fInfo.previewUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <Folder className="w-4 h-4 text-[#FFD700]" />
+                          )}
+                        </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-xs font-bold truncate text-white">{f.name}</p>
-                          <p className="text-[10px] text-[#888888]">{f.items?.length || 0} fotos</p>
+                          <p className="text-[10px] text-[#888888]">
+                            {fInfo.packsCount} {fInfo.packsCount === 1 ? 'pack' : 'packs'} ({fInfo.count} fotos)
+                          </p>
                         </div>
                         {isSel && <Check className="w-3.5 h-3.5 text-[#FFD700]" />}
                       </div>

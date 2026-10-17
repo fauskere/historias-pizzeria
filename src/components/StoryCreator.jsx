@@ -35,6 +35,32 @@ const CATEGORIES = [
   { key: 'news', label: 'Novedades', color: '#c084fc', desc: 'Lanzamientos, eventos especiales' }
 ];
 
+export function getFolderMediaInfo(folder) {
+  if (!folder) return { count: 0, packsCount: 0, previewUrl: '', mediaType: 'image', hasMedia: false };
+  const packs = Array.isArray(folder.packs) ? folder.packs : [];
+  const items = Array.isArray(folder.items) ? folder.items : [];
+
+  if (packs.length > 0) {
+    const totalImgs = packs.reduce((acc, p) => acc + (p.images?.length || 0), 0);
+    const firstImg = packs.find(p => p.images?.length > 0)?.images[0];
+    return {
+      count: totalImgs,
+      packsCount: packs.length,
+      previewUrl: firstImg?.url || '',
+      mediaType: firstImg?.mediaType || 'image',
+      hasMedia: totalImgs > 0
+    };
+  }
+
+  return {
+    count: items.length,
+    packsCount: items.length,
+    previewUrl: items[0]?.url || '',
+    mediaType: items[0]?.mediaType || 'image',
+    hasMedia: items.length > 0
+  };
+}
+
 export default function StoryCreator({ 
   onStoryCreated, 
   onStoryUpdated, 
@@ -145,14 +171,15 @@ export default function StoryCreator({
     }
 
     const currentFolder = folders.find(f => f.id === selectedFolderId) || folders[0];
+    const folderMedia = getFolderMediaInfo(currentFolder);
 
     if (sourceType === 'folder') {
       if (!currentFolder) {
         setError('Debes seleccionar una carpeta de productos.');
         return;
       }
-      if (!currentFolder.items || currentFolder.items.length === 0) {
-        setError(`La carpeta "${currentFolder.name}" aún no tiene fotos. Subí fotos en la pestaña "Carpetas" primero.`);
+      if (!folderMedia.hasMedia) {
+        setError(`La carpeta "${currentFolder.name}" aún no tiene fotos ni packs cargados. Subí fotos dentro de un pack en la pestaña "Carpetas" primero.`);
         return;
       }
     } else if (!mediaPreview && !mediaFile) {
@@ -170,8 +197,8 @@ export default function StoryCreator({
       let folderName = null;
 
       if (sourceType === 'folder' && currentFolder) {
-        mediaUrl = currentFolder.items[0]?.url || '';
-        finalMediaType = currentFolder.items[0]?.mediaType || 'image';
+        mediaUrl = folderMedia.previewUrl;
+        finalMediaType = folderMedia.mediaType;
         folderId = currentFolder.id;
         folderName = currentFolder.name;
       } else if (mediaFile) {
@@ -353,7 +380,7 @@ export default function StoryCreator({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {folders.map(f => {
                       const isSel = (selectedFolderId || folders[0]?.id) === f.id;
-                      const count = f.items?.length || 0;
+                      const fInfo = getFolderMediaInfo(f);
                       return (
                         <div
                           key={f.id}
@@ -368,15 +395,15 @@ export default function StoryCreator({
                           }`}
                         >
                           <div className="w-10 h-10 rounded-xl bg-black/40 overflow-hidden flex items-center justify-center shrink-0">
-                            {f.items?.[0]?.url ? (
-                              <img src={f.items[0].url} alt="" className="w-full h-full object-cover" />
+                            {fInfo.previewUrl ? (
+                              <img src={fInfo.previewUrl} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <Folder className="w-5 h-5 text-[#FFD700]" />
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-extrabold text-white truncate">{f.name}</p>
-                            <p className="text-[11px] text-[#888888]">{count} fotos cargadas</p>
+                            <p className="text-[11px] text-[#888888]">{fInfo.packsCount} {fInfo.packsCount === 1 ? 'pack' : 'packs'} ({fInfo.count} fotos)</p>
                           </div>
                           {isSel && <Check className="w-4 h-4 text-[#FFD700] shrink-0" />}
                         </div>
@@ -385,7 +412,7 @@ export default function StoryCreator({
                   </div>
                   <div className="p-3 rounded-xl bg-[rgba(255,215,0,0.08)] border border-[rgba(255,215,0,0.2)] text-[11px] text-[#CCCCCC] flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-[#FFD700] shrink-0" />
-                    <span>Cada día programado se publicará una foto aleatoria sin repetir hasta completar el ciclo.</span>
+                    <span>Cada día programado se publicará un pack aleatorio sin repetir, respetando el orden de sus fotos hasta completar el ciclo.</span>
                   </div>
                 </div>
               )}
