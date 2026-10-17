@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
-import { X, Pizza, Clock, Power, Film, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Pizza, Clock, Power, Film, Send, CheckCircle2, AlertCircle, Pencil } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
-import { getMetaSettings, fetchMetaSettings, addPublicationLog } from '../services/firebase';
+import { fetchMetaSettings, addPublicationLog } from '../services/firebase';
 import { publishInstagramStory, publishFacebookStory } from '../services/metaApi';
 
-export default function StoryPreviewModal({ story, onClose, onToggleActive, restaurantName = 'Mi Pizzería' }) {
+export default function StoryPreviewModal({ 
+  story, 
+  onClose, 
+  onToggleActive, 
+  onEditStory,
+  restaurantName = 'Pizzería María Belén' 
+}) {
   const [publishing, setPublishing] = useState(false);
   const [publishResult, setPublishResult] = useState(null);
 
@@ -76,11 +82,11 @@ export default function StoryPreviewModal({ story, onClose, onToggleActive, rest
 
       let message = '';
       if (overallSuccess) {
-        message = '¡Publicada con éxito en Instagram y Facebook!';
+        message = '¡Publicada con éxito en vivo en Meta!';
       } else if (igResult?.success && !fbResult?.success) {
-        message = `✅ Instagram publicado • ⚠️ Facebook: ${fbResult?.message || 'Error'}`;
+        message = `✅ Instagram OK • ⚠️ Facebook: ${fbResult?.message || 'Error'}`;
       } else if (fbResult?.success && !igResult?.success) {
-        message = `✅ Facebook publicado • ⚠️ Instagram: ${igResult?.message || 'Error'}`;
+        message = `✅ Facebook OK • ⚠️ Instagram: ${igResult?.message || 'Error'}`;
       } else {
         message = results.map(r => `${r.platform}: ${r.message}`).join(' | ');
       }
@@ -99,7 +105,7 @@ export default function StoryPreviewModal({ story, onClose, onToggleActive, rest
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
       {/* Background click to dismiss */}
       <div className="absolute inset-0" onClick={onClose} />
 
@@ -108,13 +114,16 @@ export default function StoryPreviewModal({ story, onClose, onToggleActive, rest
         {/* Close Button top right */}
         <button
           onClick={onClose}
-          className="absolute -top-11 right-0 text-white/80 hover:text-white p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 transition-colors"
+          className="absolute -top-11 right-0 text-white/80 hover:text-white p-2 rounded-full bg-[#1E1E1E] hover:bg-[#2C2C2C] border border-[rgba(255,255,255,0.1)] transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Smartphone 9:16 Mockup */}
-        <div className="relative aspect-[9/16] w-full rounded-[36px] border-[5px] border-slate-700 bg-black overflow-hidden shadow-2xl ring-2 ring-slate-800">
+        <div className="relative aspect-[9/16] w-full rounded-[42px] border-[7px] border-[#2C2C2C] bg-black overflow-hidden shadow-2xl ring-2 ring-[rgba(255,255,255,0.1)]">
+          {/* Top Notch */}
+          <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-4 bg-[#1E1E1E] rounded-full z-30" />
+
           {/* Media Content */}
           {story.mediaType === 'video' ? (
             <video
@@ -130,50 +139,50 @@ export default function StoryPreviewModal({ story, onClose, onToggleActive, rest
           )}
 
           {/* Overlay UI */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/70 pointer-events-none flex flex-col justify-between p-4">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/80 pointer-events-none flex flex-col justify-between p-4 z-20">
             {/* Top Bar */}
             <div className="pt-3 space-y-2">
               <div className="h-1 bg-white/30 rounded-full overflow-hidden">
-                <div className="w-full h-full bg-white rounded-full" />
+                <div className="w-full h-full bg-[#FFD700] rounded-full" />
               </div>
 
               <div className="flex items-center justify-between text-white">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center p-1 border-2 border-white/80">
-                    <Pizza className="w-4 h-4 text-white" />
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FFD700] to-[#E6C200] flex items-center justify-center p-1 border border-white/80 shadow-md">
+                    <Pizza className="w-4 h-4 text-black" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold leading-tight drop-shadow">{restaurantName}</p>
-                    <p className="text-[10px] text-white/80">{story.time} hs • Programada</p>
+                    <p className="text-xs font-extrabold leading-tight drop-shadow">{restaurantName}</p>
+                    <p className="text-[10px] text-white/80">{story.time} hs • Programador</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Caption Pill */}
+            {/* Bottom Caption Pill & Actions */}
             <div className="pb-3 space-y-2 pointer-events-auto">
-              <div className="bg-black/60 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-white/10 text-white space-y-1">
+              <div className="bg-black/75 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/10 text-white space-y-1 shadow-lg">
                 <p className="text-xs font-bold">{story.title}</p>
                 <div className="flex items-center justify-between text-[11px] text-white/70">
-                  <span className="capitalize">{story.categoryLabel}</span>
-                  <div className="flex items-center gap-1.5">
-                    {story.platforms?.instagram && <Instagram className="w-3 h-3 text-pink-400" />}
-                    {story.platforms?.facebook && <Facebook className="w-3 h-3 text-blue-400" />}
+                  <span className="capitalize">{story.categoryLabel || 'Historia'}</span>
+                  <div className="flex items-center gap-1.5 text-[#FFD700]">
+                    {story.platforms?.instagram && <Instagram className="w-3.5 h-3.5" />}
+                    {story.platforms?.facebook && <Facebook className="w-3.5 h-3.5" />}
                   </div>
                 </div>
               </div>
 
               {/* Status Switch bar */}
-              <div className="flex items-center justify-between bg-slate-900/90 backdrop-blur-md p-2 rounded-xl border border-white/10">
-                <span className="text-xs text-white/80">
-                  Estado: <strong className={story.active ? 'text-emerald-400' : 'text-amber-400'}>{story.active ? 'Activa' : 'Pausada'}</strong>
+              <div className="flex items-center justify-between bg-[#1E1E1E]/95 backdrop-blur-md p-2 rounded-xl border border-[rgba(255,255,255,0.1)]">
+                <span className="text-xs text-white/90 font-medium">
+                  Estado: <strong className={story.active ? 'text-[#00E096]' : 'text-[#AAAAAA]'}>{story.active ? 'Activa' : 'Pausada'}</strong>
                 </span>
                 <button
                   onClick={() => onToggleActive(story.id, !story.active)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
                     story.active
-                      ? 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30'
-                      : 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
+                      ? 'bg-[#2C2C2C] text-[#AAAAAA] hover:text-white'
+                      : 'bg-[#00E096]/20 text-[#00E096] hover:bg-[#00E096]/30'
                   }`}
                 >
                   <Power className="w-3 h-3" />
@@ -181,36 +190,49 @@ export default function StoryPreviewModal({ story, onClose, onToggleActive, rest
                 </button>
               </div>
 
-              {/* Botón de Publicación Inmediata */}
-              <button
-                onClick={handlePublishNow}
-                disabled={publishing}
-                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-orange-500/25 flex items-center justify-center gap-1.5 transition-all active:scale-95"
-              >
-                {publishing ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Publicando en Meta...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Publicar Ahora en Meta</span>
-                  </>
+              {/* Action Buttons: Editar & Publicar Ahora */}
+              <div className="flex items-center gap-2">
+                {onEditStory && (
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onEditStory(story);
+                    }}
+                    className="flex-1 py-2.5 px-3 rounded-xl bg-[#2C2C2C] hover:bg-[#383838] text-[#FFD700] font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    <span>Editar</span>
+                  </button>
                 )}
-              </button>
+
+                <button
+                  onClick={handlePublishNow}
+                  disabled={publishing}
+                  className="flex-[2] py-2.5 px-3 rounded-xl bg-[#FFD700] hover:bg-[#E6C200] disabled:opacity-50 text-black font-extrabold text-xs shadow-lg shadow-[rgba(255,215,0,0.25)] flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                >
+                  {publishing ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                      <span>Publicando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Publicar Ahora</span>
+                    </>
+                  )}
+                </button>
+              </div>
 
               {publishResult && (
-                <div className={`p-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 font-bold ${
+                <div className={`p-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 font-bold shadow-lg ${
                   publishResult.success
-                    ? 'bg-emerald-600 text-white'
+                    ? 'bg-[#00E096] text-black'
                     : publishResult.partial
-                    ? 'bg-amber-600 text-white'
-                    : 'bg-red-600 text-white'
+                    ? 'bg-[#FFD700] text-black'
+                    : 'bg-[#FF3B30] text-white'
                 }`}>
                   {publishResult.success ? (
-                    <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                  ) : publishResult.partial ? (
                     <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                   ) : (
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />

@@ -11,27 +11,27 @@ export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected })
   ];
 
   return (
-    <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md bg-opacity-90">
+    <header className="bg-[#181818] border-b border-[rgba(255,255,255,0.08)] sticky top-0 z-40 backdrop-blur-md bg-opacity-95 shadow-lg shadow-black/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('calendar')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
-              <Pizza className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveTab('calendar')}>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] via-[#FFC107] to-[#E6C200] flex items-center justify-center shadow-lg shadow-[rgba(255,215,0,0.25)] transition-transform group-hover:scale-105">
+              <Pizza className="w-6 h-6 text-black" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-lg text-white tracking-tight">PizzaStory</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                  Auto-Historias
+                <span className="font-extrabold text-base sm:text-lg text-white tracking-tight">Programador de Contenido</span>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[rgba(255,215,0,0.15)] text-[#FFD700] border border-[rgba(255,215,0,0.3)]">
+                  Pizzería María Belén
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Automatización de Instagram & Facebook</p>
+              <p className="text-[11px] text-[#AAAAAA]">Historias Automáticas en Instagram & Facebook</p>
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1">
+          {/* Navigation Links (Desktop) */}
+          <nav className="hidden md:flex items-center gap-1.5 bg-[#121212] p-1 rounded-xl border border-[rgba(255,255,255,0.06)]">
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -39,10 +39,10 @@ export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected })
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     isActive
-                      ? 'bg-orange-500 text-white shadow-md shadow-orange-500/25'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                      ? 'bg-[#FFD700] text-black shadow-md shadow-[rgba(255,215,0,0.2)]'
+                      : 'text-[#AAAAAA] hover:text-white hover:bg-[#2C2C2C]'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -52,13 +52,13 @@ export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected })
             })}
           </nav>
 
-          {/* Connection Indicator */}
+          {/* Connection Indicator & Action */}
           <div className="flex items-center gap-3">
             <div
-              className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
                 isFirebaseConnected
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                  : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                  ? 'bg-[#00E096]/10 text-[#00E096] border-[#00E096]/30'
+                  : 'bg-[#FFD700]/10 text-[#FFD700] border-[#FFD700]/30'
               }`}
               title={isFirebaseConnected ? 'Firebase Cloud Conectado' : 'Modo Local / Demo activo'}
             >
@@ -70,23 +70,23 @@ export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected })
               ) : (
                 <>
                   <Database className="w-3.5 h-3.5" />
-                  <span>Almacenamiento Local</span>
+                  <span>Modo Local</span>
                 </>
               )}
             </div>
 
             <button
               onClick={() => setActiveTab('creator')}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-medium text-sm shadow-lg shadow-orange-500/20 transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FFD700] hover:bg-[#E6C200] text-black font-extrabold text-xs shadow-md shadow-[rgba(255,215,0,0.25)] transition-all hover:-translate-y-0.5 active:translate-y-0"
             >
               <PlusCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Crear Historia</span>
+              <span className="hidden sm:inline">Nueva Historia</span>
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation bar */}
-        <div className="flex md:hidden overflow-x-auto py-2 gap-1 border-t border-slate-800">
+        <div className="flex md:hidden overflow-x-auto py-2 gap-1.5 border-t border-[rgba(255,255,255,0.06)] scrollbar-none">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -94,8 +94,10 @@ export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected })
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap ${
-                  isActive ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-white bg-slate-800/60'
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+                  isActive
+                    ? 'bg-[#FFD700] text-black shadow-sm'
+                    : 'text-[#AAAAAA] hover:text-white bg-[#1E1E1E]'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />

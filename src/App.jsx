@@ -6,6 +6,7 @@ import StoryLibrary from './components/StoryLibrary';
 import SettingsPanel from './components/SettingsPanel';
 import PublicationLogs from './components/PublicationLogs';
 import StoryPreviewModal from './components/StoryPreviewModal';
+import EditStoryModal from './components/EditStoryModal';
 import { 
   getStories, 
   saveStory, 
@@ -23,9 +24,10 @@ export default function App() {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [previewStory, setPreviewStory] = useState(null);
+  const [editingStory, setEditingStory] = useState(null);
   const [creatorInitialDay, setCreatorInitialDay] = useState(null);
   const [isFirebaseConnected, setIsFirebaseConnected] = useState(false);
-  const [restaurantName, setRestaurantName] = useState('Mi Pizzería');
+  const [restaurantName, setRestaurantName] = useState('Pizzería María Belén');
 
   // Cargar historias y verificar estado de Firebase al iniciar
   const loadInitialData = async () => {
@@ -52,7 +54,7 @@ export default function App() {
     loadInitialData();
   }, []);
 
-  // Reloj de automatización: evalúa cada 25 segundos si coincide día y hora para publicar solo
+  // Reloj de automatización local de respaldo
   useEffect(() => {
     const DAYS_ORDER = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
 
@@ -75,7 +77,6 @@ export default function App() {
         if (story.time !== currentTime) continue;
         if (story.lastAutoPublishDate === todayDateStr) continue;
 
-        console.log(`[AutoScheduler] Disparando historia programada: "${story.title}" a las ${currentTime}`);
         story.lastAutoPublishDate = todayDateStr;
         await saveStory(story);
 
@@ -113,7 +114,7 @@ export default function App() {
         }
 
         addPublicationLog({
-          storyTitle: `${story.title} (Automático)`,
+          storyTitle: `${story.title} (Local)`,
           storyId: story.id,
           mediaType: story.mediaType,
           success: overallSuccess,
@@ -137,11 +138,14 @@ export default function App() {
 
   // Eliminar historia
   const handleDeleteStory = async (id) => {
-    if (window.confirm('¿Estás seguro de que querés eliminar esta programación?')) {
+    if (window.confirm('¿Estás seguro de que querés eliminar esta historia de tu programación?')) {
       const updated = await deleteStory(id);
       setStories(updated);
       if (previewStory && previewStory.id === id) {
         setPreviewStory(null);
+      }
+      if (editingStory && editingStory.id === id) {
+        setEditingStory(null);
       }
     }
   };
@@ -151,11 +155,26 @@ export default function App() {
     await saveStory(newStory);
     const updatedList = await getStories();
     setStories(updatedList);
-    // Redirigir automáticamente para que el usuario vea su historia creada
     if (!newStory.days || newStory.days.length === 0) {
       setActiveTab('library');
     } else {
       setActiveTab('calendar');
+    }
+  };
+
+  // Abrir editor para una historia existente
+  const handleEditStory = (story) => {
+    setEditingStory(story);
+  };
+
+  // Guardar cambios de una historia editada (se propaga a todos los días)
+  const handleStoryUpdated = async (updatedStory) => {
+    await saveStory(updatedStory);
+    const updatedList = await getStories();
+    setStories(updatedList);
+    setEditingStory(null);
+    if (previewStory && previewStory.id === updatedStory.id) {
+      setPreviewStory(updatedStory);
     }
   };
 
@@ -166,7 +185,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-orange-500 selection:text-white">
+    <div className="min-h-screen bg-[#121212] text-white flex flex-col font-sans selection:bg-[#FFD700] selection:text-black">
       {/* Top Navbar */}
       <Navbar
         activeTab={activeTab}
@@ -181,8 +200,8 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center min-h-[400px] space-y-3">
-            <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-slate-400 font-medium">Cargando historias de la pizzería...</p>
+            <div className="w-10 h-10 border-4 border-[#FFD700] border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs sm:text-sm text-[#AAAAAA] font-bold">Cargando historias de Pizzería María Belén...</p>
           </div>
         ) : (
           <>
@@ -192,6 +211,7 @@ export default function App() {
                 onToggleActive={handleToggleActive}
                 onDeleteStory={handleDeleteStory}
                 onPreviewStory={setPreviewStory}
+                onEditStory={handleEditStory}
                 onAddNewForDay={handleAddNewForDay}
               />
             )}
@@ -210,6 +230,7 @@ export default function App() {
                 onToggleActive={handleToggleActive}
                 onDeleteStory={handleDeleteStory}
                 onPreviewStory={setPreviewStory}
+                onEditStory={handleEditStory}
                 onGoToCreator={() => setActiveTab('creator')}
               />
             )}
@@ -228,18 +249,28 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-500">
-        <p>PizzaStory Studio • Sistema de automatización de historias de Instagram & Facebook mediante Meta Graph API oficial</p>
+      {/* Footer Oficial */}
+      <footer className="border-t border-[rgba(255,255,255,0.06)] bg-[#121212] py-6 text-center text-xs text-[#888888]">
+        <p>Programador de Contenido • Pizzería María Belén • Automatización oficial con Meta Graph API</p>
       </footer>
 
-      {/* Modal de Vista Previa */}
+      {/* Modal de Vista Previa en Celular */}
       {previewStory && (
         <StoryPreviewModal
           story={previewStory}
           onClose={() => setPreviewStory(null)}
           onToggleActive={handleToggleActive}
+          onEditStory={handleEditStory}
           restaurantName={restaurantName}
+        />
+      )}
+
+      {/* Modal Modular de Edición de Historia */}
+      {editingStory && (
+        <EditStoryModal
+          story={editingStory}
+          onClose={() => setEditingStory(null)}
+          onSave={handleStoryUpdated}
         />
       )}
     </div>

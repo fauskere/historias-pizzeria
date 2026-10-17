@@ -1,9 +1,84 @@
 @import "tailwindcss";
 
+:root {
+  /* Premium Dark & Yellow Theme - Pizzería María Belén */
+  --bg-dark: #121212;
+  --bg-panel: #1E1E1E;
+  --bg-panel-hover: #2C2C2C;
+
+  /* Brand Colors */
+  --primary-color: #FFD700;
+  --primary-hover: #E6C200;
+  --primary-gradient: linear-gradient(135deg, #FFD700 0%, #FFC107 100%);
+  --primary-glow: rgba(255, 215, 0, 0.25);
+
+  --text-main: #FFFFFF;
+  --text-muted: #AAAAAA;
+  --text-on-primary: #000000;
+
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+
+  --success: #00E096;
+  --danger: #FF3B30;
+}
+
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-100 min-h-screen antialiased font-sans;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
     margin: 0;
     padding: 0;
   }
+}
+
+/* Scrollbar con tinte dorado sutil idéntica a Pizzeria Manager */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.4);
+}
+
+/* Glass & Card utility */
+.card-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glass);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.card-panel:hover {
+  border-color: rgba(255, 215, 0, 0.2);
+}
+
+/* Botón primario de Pizzeria Manager: Amarillo con texto negro azabache */
+.btn-gold {
+  background: var(--primary-color);
+  color: var(--text-on-primary);
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.btn-gold:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 4px 15px var(--primary-glow);
+  transform: translateY(-1px);
+}
+
+.btn-gold:active {
+  transform: translateY(0);
 }
