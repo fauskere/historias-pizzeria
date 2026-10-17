@@ -301,7 +301,8 @@ async function runScheduler() {
       }
 
       // Marcar historia como publicada hoy (y desactivarla si no es recurrente)
-      await markStoryPublished(story._docName, todayStr, story.recurring);
+      const isRecurring = story.repeatWeekly !== false && story.recurring !== false;
+      await markStoryPublished(story._docName, todayStr, isRecurring);
       publishedCount++;
     } catch (pubErr) {
       console.error(`Error publicando historia "${story.title}":`, pubErr.message);
