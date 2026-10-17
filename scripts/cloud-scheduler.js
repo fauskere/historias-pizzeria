@@ -307,7 +307,6 @@ async function runScheduler() {
       console.error(`Error publicando historia "${story.title}":`, pubErr.message);
     }
   }
-  }
 
   console.log(`--- PROCESO FINALIZADO: ${publishedCount} historia(s) publicada(s) ---`);
 }
