@@ -297,6 +297,11 @@ export default function StoryLibrary({
                     ) : (
                       <img src={story.mediaUrl} alt={story.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     )}
+                    {story.sourceType === 'folder' && (
+                      <div className="absolute top-1 left-1 z-10 w-4 h-4 rounded-md bg-black/80 border border-[#FFD700]/40 flex items-center justify-center text-[9px]" title="Rotación desde carpeta">
+                        📁
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-black/30 group-hover:bg-black/0 transition-colors flex items-center justify-center">
                       <Eye className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
                     </div>
@@ -307,10 +312,18 @@ export default function StoryLibrary({
                       {story.title}
                     </h3>
 
-                    {/* Category pill */}
+                    {/* Category or folder pill */}
                     <div className="flex items-center gap-1.5 text-xs text-[#AAAAAA] mb-2">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: story.color || '#FFD700' }} />
-                      <span className="font-semibold">{story.categoryLabel || 'Historia'}</span>
+                      {story.sourceType === 'folder' || story.folderName ? (
+                        <span className="inline-flex items-center gap-1 font-bold text-[#FFD700] bg-[rgba(255,215,0,0.12)] px-2 py-0.5 rounded-lg border border-[rgba(255,215,0,0.2)] text-[11px]">
+                          📁 {story.folderName || 'Carpeta'} (Rotativo)
+                        </span>
+                      ) : (
+                        <>
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: story.color || '#FFD700' }} />
+                          <span className="font-semibold">{story.categoryLabel || 'Historia'}</span>
+                        </>
+                      )}
                     </div>
 
                     {/* Time */}

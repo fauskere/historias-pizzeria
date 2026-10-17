@@ -176,6 +176,11 @@ export default function WeeklyCalendar({
                               className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300"
                             />
                           )}
+                          {story.sourceType === 'folder' && (
+                            <div className="absolute top-1 left-1 z-10 w-4 h-4 rounded-md bg-black/80 border border-[#FFD700]/40 flex items-center justify-center text-[9px]" title="Rotación desde carpeta">
+                              📁
+                            </div>
+                          )}
                           <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/0 transition-colors" />
                         </div>
 
@@ -207,13 +212,21 @@ export default function WeeklyCalendar({
                             {story.title}
                           </h4>
 
-                          {/* Category */}
-                          <div className="flex items-center gap-1 mt-1 text-[10px] text-[#AAAAAA]">
-                            <span 
-                              className="w-2 h-2 rounded-full" 
-                              style={{ backgroundColor: story.color || '#FFD700' }} 
-                            />
-                            <span className="truncate">{story.categoryLabel || 'Historia'}</span>
+                          {/* Category or Folder */}
+                          <div className="flex items-center gap-1.5 mt-1 text-[10px]">
+                            {story.sourceType === 'folder' || story.folderName ? (
+                              <span className="inline-flex items-center gap-1 font-bold text-[#FFD700] bg-[rgba(255,215,0,0.1)] px-1.5 py-0.5 rounded border border-[rgba(255,215,0,0.2)] truncate">
+                                📁 {story.folderName || 'Carpeta'} (Rotativo)
+                              </span>
+                            ) : (
+                              <div className="flex items-center gap-1 text-[#AAAAAA]">
+                                <span 
+                                  className="w-2 h-2 rounded-full" 
+                                  style={{ backgroundColor: story.color || '#FFD700' }} 
+                                />
+                                <span className="truncate">{story.categoryLabel || 'Historia'}</span>
+                              </div>
+                            )}
                           </div>
 
                           {/* Platforms Icons */}

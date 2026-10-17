@@ -12,7 +12,8 @@ import {
   Repeat,
   Pencil,
   X,
-  RefreshCw
+  RefreshCw,
+  Folder
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
 import { uploadStoryMedia } from '../services/firebase';
@@ -40,10 +41,17 @@ export default function StoryCreator({
   storyToEdit, 
   onCancelEdit,
   initialDay, 
+  folders = [],
   restaurantName = 'Pizzería María Belén' 
 }) {
   const isEditing = Boolean(storyToEdit);
 
+  const [sourceType, setSourceType] = useState(
+    storyToEdit?.sourceType || (storyToEdit?.folderId ? 'folder' : 'single')
+  );
+  const [selectedFolderId, setSelectedFolderId] = useState(
+    storyToEdit?.folderId || (folders[0]?.id || '')
+  );
   const [title, setTitle] = useState(storyToEdit?.title || '');
   const [category, setCategory] = useState(storyToEdit?.category || 'promo');
   const [selectedDays, setSelectedDays] = useState(
@@ -78,9 +86,11 @@ export default function StoryCreator({
       setPlatforms(storyToEdit.platforms || { instagram: true, facebook: true });
       setMediaPreview(storyToEdit.mediaUrl || null);
       setMediaType(storyToEdit.mediaType || 'image');
+      setSourceType(storyToEdit.sourceType || (storyToEdit.folderId ? 'folder' : 'single'));
+      setSelectedFolderId(storyToEdit.folderId || (folders[0]?.id || ''));
       setMediaFile(null);
     }
-  }, [storyToEdit]);
+  }, [storyToEdit, folders]);
 
   // Manejar selección de nuevo archivo
   const handleFileChange = (e) => {
@@ -128,7 +138,19 @@ export default function StoryCreator({
       setError('Por favor ingresa un título o descripción para la historia.');
       return;
     }
-    if (!mediaPreview) {
+
+    const currentFolder = folders.find(f => f.id === selectedFolderId) || folders[0];
+
+    if (sourceType === 'folder') {
+      if (!currentFolder) {
+        setError('Debes seleccionar una carpeta de productos.');
+        return;
+      }
+      if (!currentFolder.items || currentFolder.items.length === 0) {
+        setError(`La carpeta "${currentFolder.name}" aún no tiene fotos. Subí fotos en la pestaña "Carpetas" primero.`);
+        return;
+      }
+    } else if (!mediaPreview && !mediaFile) {
       setError('Debes cargar una imagen o video para la historia.');
       return;
     }
@@ -138,8 +160,16 @@ export default function StoryCreator({
       setError(null);
 
       let mediaUrl = mediaPreview;
-      // Si el usuario seleccionó un archivo nuevo desde su disco
-      if (mediaFile) {
+      let finalMediaType = mediaType;
+      let folderId = null;
+      let folderName = null;
+
+      if (sourceType === 'folder' && currentFolder) {
+        mediaUrl = currentFolder.items[0]?.url || '';
+        finalMediaType = currentFolder.items[0]?.mediaType || 'image';
+        folderId = currentFolder.id;
+        folderName = currentFolder.name;
+      } else if (mediaFile) {
         const uploadResult = await uploadStoryMedia(mediaFile, progress => {
           setUploadProgress(progress);
         });
@@ -155,7 +185,10 @@ export default function StoryCreator({
           category,
           categoryLabel: selectedCatObj?.label || 'Historia',
           color: selectedCatObj?.color || '#FFD700',
-          mediaType,
+          sourceType,
+          folderId,
+          folderName,
+          mediaType: finalMediaType,
           mediaUrl,
           days: selectedDays,
           time,
@@ -176,7 +209,10 @@ export default function StoryCreator({
           category,
           categoryLabel: selectedCatObj?.label || 'Historia',
           color: selectedCatObj?.color || '#FFD700',
-          mediaType,
+          sourceType,
+          folderId,
+          folderName,
+          mediaType: finalMediaType,
           mediaUrl,
           days: selectedDays,
           time,
@@ -255,79 +291,175 @@ export default function StoryCreator({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* 1. Imagen o Video */}
+          {/* Selector de Modo: Foto Fija vs Carpeta Rotativa */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
-                <span>1. Imagen o Video (formato 9:16 vertical)</span>
-              </label>
-              {mediaPreview && (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-xs text-[#FFD700] hover:underline font-bold flex items-center gap-1"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Cambiar archivo
-                </button>
-              )}
-            </div>
-
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
-                mediaPreview
-                  ? 'border-[#FFD700]/50 bg-[#FFD700]/5 hover:bg-[#FFD700]/10'
-                  : 'border-[rgba(255,255,255,0.1)] hover:border-[#FFD700]/40 bg-[#121212] hover:bg-[#181818]'
-              }`}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,video/mp4,video/quicktime"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-
-              {mediaPreview ? (
-                <div className="flex items-center justify-center gap-5">
-                  <div className="w-16 h-28 rounded-xl overflow-hidden bg-black border border-[rgba(255,255,255,0.15)] flex-shrink-0 shadow-lg">
-                    {mediaType === 'video' ? (
-                      <div className="w-full h-full flex items-center justify-center text-[#FFD700] bg-[#121212]">
-                        <Film className="w-7 h-7" />
-                      </div>
-                    ) : (
-                      <img src={mediaPreview} alt="Preview" className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-bold text-white">
-                      {mediaFile ? mediaFile.name : (isEditing ? 'Archivo actual de la historia' : 'Archivo cargado')}
-                    </p>
-                    <p className="text-xs text-[#00E096] font-semibold mt-1 flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" />
-                      {mediaFile ? 'Nuevo archivo seleccionado listo para subir' : 'Listo para publicar'}
-                    </p>
-                    <p className="text-xs text-[#AAAAAA] mt-2">
-                      Tocá aquí si querés seleccionar otra foto o video desde tu dispositivo
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2 py-4">
-                  <div className="w-12 h-12 mx-auto rounded-2xl bg-[#1E1E1E] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#FFD700]">
-                    <Upload className="w-6 h-6" />
-                  </div>
-                  <p className="text-sm font-bold text-white">
-                    Hacé clic para seleccionar tu foto o video
-                  </p>
-                  <p className="text-xs text-[#AAAAAA]">
-                    Formatos recomendados: JPG, PNG o MP4 vertical (1080x1920 px)
-                  </p>
-                </div>
-              )}
+            <label className="block text-xs font-bold text-white uppercase tracking-wider mb-2">
+              Modo de Contenido
+            </label>
+            <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[#121212] border border-[rgba(255,255,255,0.08)]">
+              <button
+                type="button"
+                onClick={() => setSourceType('single')}
+                className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
+                  sourceType === 'single'
+                    ? 'bg-[#FFD700] text-black shadow-md'
+                    : 'text-[#AAAAAA] hover:text-white'
+                }`}
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>Foto Fija</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSourceType('folder');
+                  if (!selectedFolderId && folders.length > 0) {
+                    setSelectedFolderId(folders[0].id);
+                    if (!title) setTitle(folders[0].name);
+                  }
+                }}
+                className={`py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
+                  sourceType === 'folder'
+                    ? 'bg-[#FFD700] text-black shadow-md'
+                    : 'text-[#AAAAAA] hover:text-white'
+                }`}
+              >
+                <Folder className="w-3.5 h-3.5" />
+                <span>Carpeta Rotativa</span>
+              </button>
             </div>
           </div>
+
+          {sourceType === 'folder' ? (
+            <div>
+              <label className="block text-xs sm:text-sm font-bold text-white mb-2">
+                1. Seleccionar Carpeta de Productos
+              </label>
+              {folders.length === 0 ? (
+                <div className="p-5 rounded-2xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-center space-y-2">
+                  <Folder className="w-8 h-8 text-[#FFD700] mx-auto opacity-70" />
+                  <p className="text-xs font-bold text-white">No tenés carpetas creadas todavía</p>
+                  <p className="text-[11px] text-[#AAAAAA]">
+                    Andá a la pestaña "Carpetas" en el menú para crear una (ej: Pizzas) y cargar fotos.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {folders.map(f => {
+                      const isSel = (selectedFolderId || folders[0]?.id) === f.id;
+                      const count = f.items?.length || 0;
+                      return (
+                        <div
+                          key={f.id}
+                          onClick={() => {
+                            setSelectedFolderId(f.id);
+                            if (!title || folders.some(fol => fol.name === title)) setTitle(f.name);
+                          }}
+                          className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 ${
+                            isSel 
+                              ? 'bg-[rgba(255,215,0,0.12)] border-[#FFD700] text-white shadow-md'
+                              : 'bg-[#121212] border-[rgba(255,255,255,0.08)] text-[#AAAAAA] hover:border-[#FFD700]/30 hover:text-white'
+                          }`}
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-black/40 overflow-hidden flex items-center justify-center shrink-0">
+                            {f.items?.[0]?.url ? (
+                              <img src={f.items[0].url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <Folder className="w-5 h-5 text-[#FFD700]" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-extrabold text-white truncate">{f.name}</p>
+                            <p className="text-[11px] text-[#888888]">{count} fotos cargadas</p>
+                          </div>
+                          {isSel && <Check className="w-4 h-4 text-[#FFD700] shrink-0" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="p-3 rounded-xl bg-[rgba(255,215,0,0.08)] border border-[rgba(255,215,0,0.2)] text-[11px] text-[#CCCCCC] flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#FFD700] shrink-0" />
+                    <span>Cada día programado se publicará una foto aleatoria sin repetir hasta completar el ciclo.</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* 1. Imagen o Video Fijo */
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                  <span>1. Imagen o Video (formato 9:16 vertical)</span>
+                </label>
+                {mediaPreview && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-xs text-[#FFD700] hover:underline font-bold flex items-center gap-1"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Cambiar archivo
+                  </button>
+                )}
+              </div>
+
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
+                  mediaPreview
+                    ? 'border-[#FFD700]/50 bg-[#FFD700]/5 hover:bg-[#FFD700]/10'
+                    : 'border-[rgba(255,255,255,0.1)] hover:border-[#FFD700]/40 bg-[#121212] hover:bg-[#181818]'
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/mp4,video/quicktime"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
+                {mediaPreview ? (
+                  <div className="flex items-center justify-center gap-5">
+                    <div className="w-16 h-28 rounded-xl overflow-hidden bg-black border border-[rgba(255,255,255,0.15)] flex-shrink-0 shadow-lg">
+                      {mediaType === 'video' ? (
+                        <div className="w-full h-full flex items-center justify-center text-[#FFD700] bg-[#121212]">
+                          <Film className="w-7 h-7" />
+                        </div>
+                      ) : (
+                        <img src={mediaPreview} alt="Preview" className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-white">
+                        {mediaFile ? mediaFile.name : (isEditing ? 'Archivo actual de la historia' : 'Archivo cargado')}
+                      </p>
+                      <p className="text-xs text-[#00E096] font-semibold mt-1 flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" />
+                        {mediaFile ? 'Nuevo archivo seleccionado listo para subir' : 'Listo para publicar'}
+                      </p>
+                      <p className="text-xs text-[#AAAAAA] mt-2">
+                        Tocá aquí si querés seleccionar otra foto o video desde tu dispositivo
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2 py-4">
+                    <div className="w-12 h-12 mx-auto rounded-2xl bg-[#1E1E1E] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#FFD700]">
+                      <Upload className="w-6 h-6" />
+                    </div>
+                    <p className="text-sm font-bold text-white">
+                      Hacé clic para seleccionar tu foto o video
+                    </p>
+                    <p className="text-xs text-[#AAAAAA]">
+                      Formatos recomendados: JPG, PNG o MP4 vertical (1080x1920 px)
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* 2. Título / Referencia */}
           <div>

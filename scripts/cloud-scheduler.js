@@ -6,6 +6,23 @@ const GRAPH_BASE_URL = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
 const PROJECT_ID = 'programador-de-contenido';
 const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
+function parseFirestoreVal(val) {
+  if (!val) return null;
+  if ('stringValue' in val) return val.stringValue;
+  if ('booleanValue' in val) return val.booleanValue;
+  if ('integerValue' in val) return parseInt(val.integerValue, 10);
+  if ('doubleValue' in val) return parseFloat(val.doubleValue);
+  if ('arrayValue' in val) return (val.arrayValue.values || []).map(parseFirestoreVal);
+  if ('mapValue' in val) {
+    const map = {};
+    for (const [k, v] of Object.entries(val.mapValue.fields || {})) {
+      map[k] = parseFirestoreVal(v);
+    }
+    return map;
+  }
+  return val;
+}
+
 // Función para transformar documentos de Firestore REST API a objetos limpios
 function parseFirestoreDoc(doc) {
   if (!doc || !doc.fields) return null;
@@ -13,19 +30,7 @@ function parseFirestoreDoc(doc) {
   const obj = { id, _docName: doc.name };
 
   for (const [key, val] of Object.entries(doc.fields)) {
-    if ('stringValue' in val) obj[key] = val.stringValue;
-    else if ('booleanValue' in val) obj[key] = val.booleanValue;
-    else if ('integerValue' in val) obj[key] = parseInt(val.integerValue, 10);
-    else if ('doubleValue' in val) obj[key] = parseFloat(val.doubleValue);
-    else if ('arrayValue' in val) {
-      obj[key] = (val.arrayValue.values || []).map(v => v.stringValue || v.booleanValue || v);
-    } else if ('mapValue' in val) {
-      const map = {};
-      for (const [k, v] of Object.entries(val.mapValue.fields || {})) {
-        map[k] = v.booleanValue !== undefined ? v.booleanValue : (v.stringValue || v);
-      }
-      obj[key] = map;
-    }
+    obj[key] = parseFirestoreVal(val);
   }
   return obj;
 }
@@ -314,13 +319,67 @@ async function runScheduler() {
 
     try {
       const details = [];
+      let mediaToPublish = story.mediaUrl;
+      let mediaTypeToPublish = story.mediaType || 'image';
+      let publishedTitle = story.title;
+
+      // Si la historia está vinculada a una carpeta rotativa
+      if ((story.sourceType === 'folder' || story.folderId) && story.folderId) {
+        try {
+          const folderRes = await fetch(`${FIRESTORE_BASE}/folders/${story.folderId}`);
+          if (folderRes.ok) {
+            const folderDoc = await folderRes.json();
+            const folderData = parseFirestoreDoc(folderDoc);
+            const items = Array.isArray(folderData?.items) ? folderData.items : [];
+            const usedIds = Array.isArray(folderData?.usedItemIds) ? folderData.usedItemIds : [];
+
+            if (items.length > 0) {
+              let available = items.filter(it => !usedIds.includes(it.id));
+              let cycleReset = false;
+              if (available.length === 0) {
+                console.log(`[Carpeta ${folderData.name || ''}] Se completó el ciclo. Reiniciando pool aleatorio...`);
+                available = [...items];
+                cycleReset = true;
+              }
+
+              const chosen = available[Math.floor(Math.random() * available.length)];
+              mediaToPublish = chosen.url;
+              mediaTypeToPublish = chosen.mediaType || 'image';
+              publishedTitle = `${story.title} [📁 ${folderData.name || 'Carpeta'}: ${chosen.name || 'Foto'}]`;
+
+              const nextUsed = cycleReset ? [chosen.id] : [...usedIds, chosen.id];
+              const updateFolderUrl = `https://firestore.googleapis.com/v1/${folderDoc.name}?updateMask.fieldPaths=usedItemIds`;
+              await fetch(updateFolderUrl, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  fields: {
+                    usedItemIds: {
+                      arrayValue: {
+                        values: nextUsed.map(id => ({ stringValue: id }))
+                      }
+                    }
+                  }
+                })
+              });
+              console.log(`[Carpeta] Selección aleatoria: "${chosen.name || chosen.id}" (${nextUsed.length}/${items.length} del ciclo emitidas)`);
+            }
+          }
+        } catch (fErr) {
+          console.warn('[Carpeta] Error seleccionando foto de carpeta, usando fallback:', fErr.message);
+        }
+      }
+
+      if (!mediaToPublish) {
+        throw new Error('No se encontró ninguna imagen para publicar (la carpeta está vacía o sin imagen).');
+      }
 
       if (story.platforms?.instagram && instagramAccountId) {
         const igRes = await publishInstagramStory({
           instagramAccountId,
           pageAccessToken,
-          mediaUrl: story.mediaUrl,
-          mediaType: story.mediaType || 'image'
+          mediaUrl: mediaToPublish,
+          mediaType: mediaTypeToPublish
         });
         details.push({ platform: 'instagram', message: `Publicada con éxito (ID: ${igRes.storyId})` });
       }
@@ -330,8 +389,8 @@ async function runScheduler() {
           const fbRes = await publishFacebookStory({
             facebookPageId,
             pageAccessToken,
-            mediaUrl: story.mediaUrl,
-            mediaType: story.mediaType || 'image'
+            mediaUrl: mediaToPublish,
+            mediaType: mediaTypeToPublish
           });
           details.push({ platform: 'facebook', message: `Publicada con éxito (ID: ${fbRes.storyId})` });
         } catch (fbErr) {
@@ -343,7 +402,7 @@ async function runScheduler() {
       // Marcar historia como publicada hoy (y desactivarla si no es recurrente)
       const isRecurring = story.repeatWeekly !== false && story.recurring !== false;
       await markStoryPublished(story._docName, todayStr, isRecurring);
-      await savePublicationLog({ storyTitle: story.title, success: true, details });
+      await savePublicationLog({ storyTitle: publishedTitle, success: true, details });
       publishedCount++;
     } catch (pubErr) {
       console.error(`Error publicando historia "${story.title}":`, pubErr.message);

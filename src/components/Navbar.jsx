@@ -1,9 +1,10 @@
 import React from 'react';
-import { Calendar, PlusCircle, Film, History, Settings, Pizza, Cloud, Database } from 'lucide-react';
+import { Calendar, PlusCircle, Film, History, Settings, Pizza, Cloud, Database, Folder } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected }) {
   const tabs = [
     { id: 'calendar', label: 'Calendario Semanal', icon: Calendar },
+    { id: 'folders', label: 'Carpetas', icon: Folder },
     { id: 'creator', label: 'Nueva Historia', icon: PlusCircle },
     { id: 'library', label: 'Biblioteca', icon: Film },
     { id: 'logs', label: 'Historial', icon: History },

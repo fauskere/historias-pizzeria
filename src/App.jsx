@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import WeeklyCalendar from './components/WeeklyCalendar';
+import FolderManager from './components/FolderManager';
 import StoryCreator from './components/StoryCreator';
 import StoryLibrary from './components/StoryLibrary';
 import SettingsPanel from './components/SettingsPanel';
@@ -15,13 +16,18 @@ import {
   initFirebase, 
   getMetaSettings,
   fetchMetaSettings,
-  addPublicationLog
+  addPublicationLog,
+  getFolders,
+  saveFolder,
+  deleteFolder,
+  resetFolderCycle
 } from './services/firebase';
 import { publishInstagramStory, publishFacebookStory } from './services/metaApi';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('calendar');
   const [stories, setStories] = useState([]);
+  const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [previewStory, setPreviewStory] = useState(null);
   const [editingStory, setEditingStory] = useState(null);
@@ -29,7 +35,7 @@ export default function App() {
   const [isFirebaseConnected, setIsFirebaseConnected] = useState(false);
   const [restaurantName, setRestaurantName] = useState('Pizzería María Belén');
 
-  // Cargar historias y verificar estado de Firebase al iniciar
+  // Cargar historias y carpetas al iniciar
   const loadInitialData = async () => {
     try {
       setLoading(true);
@@ -41,10 +47,14 @@ export default function App() {
         setRestaurantName(meta.restaurantName);
       }
 
-      const list = await getStories();
+      const [list, fList] = await Promise.all([
+        getStories(),
+        getFolders()
+      ]);
       setStories(list);
+      setFolders(fList);
     } catch (err) {
-      console.error('Error cargando historias iniciales:', err);
+      console.error('Error cargando historias y carpetas iniciales:', err);
     } finally {
       setLoading(false);
     }
@@ -184,6 +194,25 @@ export default function App() {
     setActiveTab('creator');
   };
 
+  // Handlers para carpetas de contenido inteligente
+  const handleSaveFolder = async (folderData) => {
+    await saveFolder(folderData);
+    const updated = await getFolders();
+    setFolders(updated);
+  };
+
+  const handleDeleteFolder = async (folderId) => {
+    await deleteFolder(folderId);
+    const updated = await getFolders();
+    setFolders(updated);
+  };
+
+  const handleResetFolderCycle = async (folderId) => {
+    await resetFolderCycle(folderId);
+    const updated = await getFolders();
+    setFolders(updated);
+  };
+
   return (
     <div className="min-h-screen bg-[#121212] text-white flex flex-col font-sans selection:bg-[#FFD700] selection:text-black">
       {/* Top Navbar */}
@@ -216,11 +245,21 @@ export default function App() {
               />
             )}
 
+            {activeTab === 'folders' && (
+              <FolderManager
+                folders={folders}
+                onSave={handleSaveFolder}
+                onDelete={handleDeleteFolder}
+                onResetCycle={handleResetFolderCycle}
+              />
+            )}
+
             {activeTab === 'creator' && (
               <StoryCreator
                 onStoryCreated={handleStoryCreated}
                 initialDay={creatorInitialDay}
                 restaurantName={restaurantName}
+                folders={folders}
               />
             )}
 
@@ -271,6 +310,7 @@ export default function App() {
           story={editingStory}
           onClose={() => setEditingStory(null)}
           onSave={handleStoryUpdated}
+          folders={folders}
         />
       )}
     </div>

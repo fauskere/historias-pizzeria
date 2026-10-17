@@ -299,3 +299,108 @@ export async function addPublicationLog(logEntry) {
 
   return updated;
 }
+
+// ----------------------------------------------------------------------------
+// GESTIÓN DE CARPETAS DE CONTENIDO (POOLS INTELIGENTES)
+// ----------------------------------------------------------------------------
+const LOCAL_STORAGE_KEY_FOLDERS = 'pizzeria_folders_local';
+
+export function getLocalFolders() {
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY_FOLDERS);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalFolders(list) {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY_FOLDERS, JSON.stringify(list));
+  } catch (err) {
+    console.error('Error guardando carpetas localmente:', err);
+  }
+}
+
+export async function getFolders() {
+  const localList = getLocalFolders();
+  const { initialized } = initFirebase();
+
+  if (initialized && db) {
+    try {
+      const q = query(collection(db, 'folders'));
+      const snapshot = await getDocs(q);
+      const list = [];
+      snapshot.forEach(docSnap => list.push({ id: docSnap.id, ...docSnap.data() }));
+
+      if (list.length > 0) {
+        saveLocalFolders(list);
+        return list;
+      }
+    } catch (err) {
+      console.warn('Error obteniendo carpetas de Firestore:', err);
+    }
+  }
+  return localList;
+}
+
+export async function saveFolder(folderData) {
+  const folders = getLocalFolders();
+  const id = folderData.id || `folder_${Date.now()}`;
+  const record = {
+    ...folderData,
+    id,
+    items: folderData.items || [],
+    usedItemIds: folderData.usedItemIds || [],
+    updatedAt: new Date().toISOString()
+  };
+
+  const idx = folders.findIndex(f => f.id === id);
+  const updated = idx >= 0 ? folders.map(f => f.id === id ? record : f) : [...folders, record];
+  saveLocalFolders(updated);
+
+  const { initialized } = initFirebase();
+  if (initialized && db) {
+    try {
+      await setDoc(doc(db, 'folders', id), record, { merge: true });
+    } catch (err) {
+      console.warn('Error guardando carpeta en Firestore:', err);
+    }
+  }
+  return record;
+}
+
+export async function deleteFolder(folderId) {
+  const folders = getLocalFolders().filter(f => f.id !== folderId);
+  saveLocalFolders(folders);
+
+  const { initialized } = initFirebase();
+  if (initialized && db) {
+    try {
+      await deleteDoc(doc(db, 'folders', folderId));
+    } catch (err) {
+      console.warn('Error eliminando carpeta de Firestore:', err);
+    }
+  }
+  return folders;
+}
+
+export async function resetFolderCycle(folderId) {
+  const folders = getLocalFolders();
+  const target = folders.find(f => f.id === folderId);
+  if (!target) return null;
+
+  target.usedItemIds = [];
+  target.updatedAt = new Date().toISOString();
+  saveLocalFolders(folders);
+
+  const { initialized } = initFirebase();
+  if (initialized && db) {
+    try {
+      await updateDoc(doc(db, 'folders', folderId), { usedItemIds: [] });
+    } catch (err) {
+      console.warn('Error reseteando ciclo de carpeta en Firestore:', err);
+    }
+  }
+  return target;
+}
