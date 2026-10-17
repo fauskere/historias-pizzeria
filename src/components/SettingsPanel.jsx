@@ -123,14 +123,43 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
         </div>
 
         {showGuide && (
-          <div className="p-4 rounded-2xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-xs text-[#CCCCCC] space-y-2.5">
-            <p className="font-bold text-white text-sm">Pasos rápidos en Meta for Developers:</p>
-            <ol className="list-decimal pl-4 space-y-1.5 text-[#AAAAAA]">
-              <li>Entrá a <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noreferrer" className="text-[#FFD700] underline font-bold">Graph API Explorer</a>.</li>
-              <li>En <strong>App de Meta</strong>, seleccioná tu aplicación.</li>
-              <li>En <strong>Permisos</strong>, agregá: <code className="text-[#FFD700]">instagram_basic</code>, <code className="text-[#FFD700]">instagram_content_publish</code>, <code className="text-[#FFD700]">pages_show_list</code>, <code className="text-[#FFD700]">pages_manage_posts</code>.</li>
-              <li>Hacé clic en <strong>Generate Access Token</strong> y aceptá tu página e Instagram.</li>
-            </ol>
+          <div className="p-5 rounded-2xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-xs text-[#CCCCCC] space-y-4">
+            <div>
+              <p className="font-bold text-[#FFD700] text-sm mb-1">
+                ⭐ Método Recomendado: Token Permanente (NUNCA VENCE)
+              </p>
+              <p className="text-[#AAAAAA] mb-2 leading-relaxed">
+                Los tokens comunes de Graph API Explorer duran solo 1 o 2 horas. Para que el bot publique solo todos los días sin interrumpirse, creá un token con vencimiento <strong>"Nunca"</strong> desde Meta Business Suite:
+              </p>
+              <ol className="list-decimal pl-4 space-y-1.5 text-[#CCCCCC]">
+                <li>Entrá a <a href="https://business.facebook.com/settings" target="_blank" rel="noreferrer" className="text-[#FFD700] underline font-bold">Configuración del Negocio (business.facebook.com/settings)</a>.</li>
+                <li>En el menú lateral izquierdo, andá a <strong>Usuarios</strong> &gt; <strong>Usuarios del sistema</strong>.</li>
+                <li>Hacé clic en <strong>Agregar</strong> (Nombre: <em>Bot Pizzería</em>, Rol: <em>Administrador</em>).</li>
+                <li>Hacé clic en <strong>Asignar activos</strong>:
+                  <ul className="list-disc pl-4 mt-1 text-[#AAAAAA] space-y-0.5">
+                    <li>En <em>Páginas</em>: seleccioná la página de tu pizzería y activá <strong>Control total</strong> (Administrar página).</li>
+                    <li>En <em>Cuentas de Instagram</em>: vinculá la cuenta de Instagram de la pizzería.</li>
+                  </ul>
+                </li>
+                <li>Hacé clic en <strong>Generar nuevo token</strong>:
+                  <ul className="list-disc pl-4 mt-1 text-[#AAAAAA] space-y-0.5">
+                    <li>Seleccioná tu App de Meta.</li>
+                    <li><strong>Vencimiento del token:</strong> Seleccioná <strong className="text-white">"Nunca" (Never)</strong>.</li>
+                    <li>Marcá estos permisos: <code className="text-[#FFD700]">pages_show_list</code>, <code className="text-[#FFD700]">pages_manage_posts</code>, <code className="text-[#FFD700]">pages_read_engagement</code>, <code className="text-[#FFD700]">instagram_basic</code>, <code className="text-[#FFD700]">instagram_content_publish</code>.</li>
+                  </ul>
+                </li>
+                <li>Copiá el token generado, pegalo abajo y hacé clic en <strong>"Guardar Credenciales"</strong>.</li>
+              </ol>
+            </div>
+
+            <div className="pt-2 border-t border-[rgba(255,255,255,0.06)]">
+              <p className="font-bold text-white mb-1">
+                Alternativa rápida vía Graph API Explorer:
+              </p>
+              <p className="text-[#AAAAAA] leading-relaxed">
+                Si generás el token en <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noreferrer" className="text-[#FFD700] underline">Graph API Explorer</a>, recordá extenderlo a token de página permanente consultando <code className="text-[#FFD700]">/me/accounts</code> para evitar que expire a las pocas horas.
+              </p>
+            </div>
           </div>
         )}
 
@@ -204,7 +233,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
 
         {metaTestResult && (
           <div
-            className={`p-4 rounded-2xl border text-xs sm:text-sm space-y-1.5 font-medium ${
+            className={`p-4 rounded-2xl border text-xs sm:text-sm space-y-2.5 font-medium ${
               metaTestResult.success
                 ? 'bg-[#00E096]/10 border-[#00E096]/30 text-[#00E096]'
                 : 'bg-[#FF3B30]/10 border-[#FF3B30]/30 text-[#FF6B6B]'
@@ -214,6 +243,26 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
               {metaTestResult.success ? <CheckCircle2 className="w-5 h-5 text-[#00E096]" /> : <AlertCircle className="w-5 h-5 text-[#FF3B30]" />}
               <span>{metaTestResult.message}</span>
             </div>
+
+            {metaTestResult.tokenDebug && (
+              metaTestResult.tokenDebug.isPermanent ? (
+                <div className="flex items-center gap-2 text-xs text-[#00E096] bg-[#00E096]/15 px-3 py-2 rounded-xl border border-[#00E096]/30">
+                  <CheckCircle2 className="w-4 h-4 text-[#00E096] shrink-0" />
+                  <span><strong>Token Permanente verificado</strong>: Este token no vence jamás. Tus publicaciones diarias se ejecutarán de forma ininterrumpida.</span>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1 text-xs text-[#FFD700] bg-[rgba(255,215,0,0.12)] px-3.5 py-2.5 rounded-xl border border-[rgba(255,215,0,0.3)]">
+                  <span className="font-bold flex items-center gap-1.5 text-white">
+                    <AlertCircle className="w-4 h-4 text-[#FFD700] shrink-0" />
+                    Atención: Este token es TEMPORAL (Vence: {metaTestResult.tokenDebug.expiresAtText})
+                  </span>
+                  <span className="text-[#CCCCCC]">
+                    Los tokens temporales caducan y detienen las publicaciones automáticas. Generá uno permanente con vencimiento "Nunca" siguiendo la guía de arriba.
+                  </span>
+                </div>
+              )
+            )}
+
             {metaTestResult.page && (
               <p className="text-xs text-white">
                 Página de Facebook: <strong>{metaTestResult.page.name}</strong> (ID: {metaTestResult.page.id})

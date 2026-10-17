@@ -21,12 +21,45 @@ export async function testMetaConnection({ pageAccessToken, facebookPageId, inst
     const meData = await meRes.json();
 
     if (meData.error) {
+      const isExpired = meData.error.message?.toLowerCase().includes('expired') || meData.error.code === 190;
       return {
         success: false,
-        errorType: 'TOKEN_INVALID',
-        message: `Error de Meta: ${meData.error.message}`,
+        errorType: isExpired ? 'TOKEN_EXPIRED' : 'TOKEN_INVALID',
+        message: isExpired
+          ? 'El Token de Meta ha EXPIRADO. Necesitás generar un nuevo Token Permanente (con vencimiento "Nunca").'
+          : `Error de Meta: ${meData.error.message}`,
         details: meData.error
       };
+    }
+
+    // 1.1 Intentar diagnosticar vigencia del token vía /debug_token
+    let tokenDebug = null;
+    try {
+      const debugRes = await fetch(
+        `${GRAPH_BASE_URL}/debug_token?input_token=${encodeURIComponent(pageAccessToken)}&access_token=${encodeURIComponent(pageAccessToken)}`
+      );
+      const debugData = await debugRes.json();
+      if (debugData.data) {
+        const d = debugData.data;
+        const isPermanent = d.expires_at === 0;
+        let expiresAtText = 'Nunca (Permanente)';
+        let hoursRemaining = null;
+        if (!isPermanent && d.expires_at > 0) {
+          const expDate = new Date(d.expires_at * 1000);
+          expiresAtText = expDate.toLocaleString('es-AR');
+          hoursRemaining = Math.max(0, Math.round((d.expires_at * 1000 - Date.now()) / (1000 * 60 * 60)));
+        }
+        tokenDebug = {
+          isValid: d.is_valid,
+          isPermanent,
+          type: d.type,
+          expiresAtText,
+          hoursRemaining,
+          scopes: d.scopes || []
+        };
+      }
+    } catch {
+      // Ignorar si el endpoint debug_token no responde con este token
     }
 
     // 2. Intentar descubrir páginas administradas mediante /me/accounts
@@ -97,7 +130,8 @@ export async function testMetaConnection({ pageAccessToken, facebookPageId, inst
       page: pageInfo,
       instagram: igInfo,
       detectedFacebookPageId: discoveredPageId,
-      detectedInstagramId: discoveredIgId
+      detectedInstagramId: discoveredIgId,
+      tokenDebug
     };
   } catch (err) {
     return {
