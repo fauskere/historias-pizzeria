@@ -289,13 +289,15 @@ export default function StoryLibrary({
                     onClick={() => onPreviewStory(story)}
                     className="w-16 h-28 rounded-xl overflow-hidden bg-black flex-shrink-0 cursor-pointer border border-[rgba(255,255,255,0.12)] group relative shadow-md"
                   >
-                    {story.mediaType === 'video' ? (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-[#FFD700] bg-[#141414]">
-                        <Film className="w-6 h-6" />
-                        <span className="text-[9px] mt-1 font-bold">Video</span>
+                    <img
+                      src={story.mediaUrl ? story.mediaUrl.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg') : ''}
+                      alt={story.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    {story.mediaType === 'video' && (
+                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                        <Film className="w-5 h-5 text-[#FFD700] drop-shadow" />
                       </div>
-                    ) : (
-                      <img src={story.mediaUrl} alt={story.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     )}
                     {story.sourceType === 'folder' && (
                       <div className="absolute top-1 left-1 z-10 w-4 h-4 rounded-md bg-black/80 border border-[#FFD700]/40 flex items-center justify-center text-[9px]" title="Rotación desde carpeta">

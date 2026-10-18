@@ -367,10 +367,15 @@ export default function FolderManager({
                     className="relative group bg-[#121212] rounded-2xl overflow-hidden border border-[rgba(255,255,255,0.08)] aspect-[9/16] flex flex-col justify-between p-2.5 shadow-md hover:border-[#FFD700]/40 transition-all"
                   >
                     <img 
-                      src={item.url} 
+                      src={item.url ? item.url.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg') : ''} 
                       alt="" 
                       className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                     />
+                    {item.mediaType === 'video' && (
+                      <div className="absolute top-2.5 right-10 z-10 p-1 rounded-md bg-black/70 text-[#FFD700] backdrop-blur-sm" title="Video">
+                        <Film className="w-3.5 h-3.5" />
+                      </div>
+                    )}
                     <div className="relative z-10 flex items-center justify-between">
                       {isUsed ? (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#00E096] text-black">Emitida</span>
@@ -743,6 +748,7 @@ export default function FolderManager({
             const firstImg = isSingle 
               ? folder.items?.[0]?.url 
               : folder.packs?.[0]?.images?.[0]?.url;
+            const posterUrl = firstImg ? firstImg.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg') : '';
 
             return (
               <div
@@ -753,8 +759,8 @@ export default function FolderManager({
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="w-12 h-12 rounded-2xl bg-[#121212] border border-[rgba(255,255,255,0.08)] flex items-center justify-center overflow-hidden shrink-0">
-                      {firstImg ? (
-                        <img src={firstImg} alt="" className="w-full h-full object-cover" />
+                      {posterUrl ? (
+                        <img src={posterUrl} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <Folder className="w-6 h-6 text-[#FFD700]" />
                       )}

@@ -164,17 +164,15 @@ export default function WeeklyCalendar({
                           onClick={() => onPreviewStory(story)}
                           title="Clic para ver vista previa completa"
                         >
-                          {story.mediaType === 'video' ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-[#181818] text-[#FFD700]">
-                              <Film className="w-5 h-5" />
-                              <span className="text-[8px] mt-0.5 font-bold">Video</span>
+                          <img
+                            src={story.mediaUrl ? story.mediaUrl.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg') : ''}
+                            alt={story.title}
+                            className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300"
+                          />
+                          {story.mediaType === 'video' && (
+                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                              <Film className="w-4 h-4 text-[#FFD700] drop-shadow" />
                             </div>
-                          ) : (
-                            <img
-                              src={story.mediaUrl}
-                              alt={story.title}
-                              className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300"
-                            />
                           )}
                           {story.sourceType === 'folder' && (
                             <div className="absolute top-1 left-1 z-10 w-4 h-4 rounded-md bg-black/80 border border-[#FFD700]/40 flex items-center justify-center text-[9px]" title="Rotación desde carpeta">
@@ -326,13 +324,15 @@ export default function WeeklyCalendar({
                   onClick={() => onPreviewStory(story)}
                   title="Ver y publicar"
                 >
-                  {story.mediaType === 'video' ? (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-[#FFD700] bg-[#181818] text-[10px]">
-                      <Film className="w-4 h-4" />
-                      <span>Video</span>
+                  <img
+                    src={story.mediaUrl ? story.mediaUrl.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg') : ''}
+                    alt={story.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                  {story.mediaType === 'video' && (
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                      <Film className="w-4 h-4 text-[#FFD700] drop-shadow" />
                     </div>
-                  ) : (
-                    <img src={story.mediaUrl} alt={story.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   )}
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
                 </div>

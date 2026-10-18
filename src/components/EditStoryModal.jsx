@@ -274,7 +274,7 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
                       >
                         <div className="w-8 h-8 rounded-lg bg-black/40 overflow-hidden flex items-center justify-center shrink-0">
                           {fInfo.previewUrl ? (
-                            <img src={fInfo.previewUrl} alt="" className="w-full h-full object-cover" />
+                            <img src={fInfo.previewUrl.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg')} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <Folder className="w-4 h-4 text-[#FFD700]" />
                           )}

@@ -399,15 +399,16 @@ export default function StoryCreator({
                         >
                           <div className="w-10 h-10 rounded-xl bg-black/40 overflow-hidden flex items-center justify-center shrink-0">
                             {fInfo.previewUrl ? (
-                              <img src={fInfo.previewUrl} alt="" className="w-full h-full object-cover" />
+                              <img src={fInfo.previewUrl.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg')} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <Folder className="w-5 h-5 text-[#FFD700]" />
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
+                            <p className="text-xs font-extrabold text-white truncate">{f.name}</p>
                             <p className="text-[11px] text-[#888888]">
                               {fInfo.isSingle 
-                                ? `${fInfo.count} fotos individuales` 
+                                ? `${fInfo.count} historias individuales` 
                                 : `${fInfo.packsCount} ${fInfo.packsCount === 1 ? 'pack' : 'packs'} (${fInfo.count} fotos)`}
                             </p>
                           </div>
