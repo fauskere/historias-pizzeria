@@ -256,6 +256,7 @@ export default function App() {
             {activeTab === 'calendar' && (
               <WeeklyCalendar
                 stories={stories}
+                folders={folders}
                 onToggleActive={handleToggleActive}
                 onDeleteStory={handleDeleteStory}
                 onPreviewStory={setPreviewStory}

@@ -9,9 +9,13 @@ import {
   Film, 
   Sparkles,
   Zap,
-  Pencil
+  Pencil,
+  Folder as FolderIcon,
+  Layers,
+  Send
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
+import FolderLaunchModal from './FolderLaunchModal';
 
 const DAYS_OF_WEEK = [
   { key: 'lunes', label: 'Lunes', short: 'Lun' },
@@ -25,6 +29,7 @@ const DAYS_OF_WEEK = [
 
 export default function WeeklyCalendar({ 
   stories, 
+  folders = [],
   onToggleActive, 
   onDeleteStory, 
   onPreviewStory,
@@ -32,6 +37,7 @@ export default function WeeklyCalendar({
   onAddNewForDay 
 }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedFolderToLaunch, setSelectedFolderToLaunch] = useState(null);
 
   // Identificar el día actual en Argentina
   const daysMap = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
@@ -43,8 +49,27 @@ export default function WeeklyCalendar({
     return story.category === selectedCategory;
   });
 
-  // Historias "A Demanda" (sin días fijos)
+  // Historias "A Demanda" (sin días fijos y sin folderId asociado a un calendario)
   const onDemandStories = filteredStories.filter(s => !s.days || s.days.length === 0);
+
+  // Carpetas que tienen contenido pero NO están agendadas con días en el calendario semanal
+  const scheduledFolderIds = new Set(
+    stories
+      .filter(s => s.active && s.days && s.days.length > 0 && s.folderId)
+      .map(s => s.folderId)
+  );
+
+  const onDemandFolders = folders.filter(folder => {
+    const hasItems = Array.isArray(folder.items) && folder.items.length > 0;
+    const hasPacks = Array.isArray(folder.packs) && folder.packs.length > 0;
+    const hasContent = hasItems || hasPacks;
+    if (!hasContent) return false;
+
+    // Si la categoría está filtrada, chequear si coincide
+    if (selectedCategory !== 'all' && folder.category !== selectedCategory) return false;
+
+    return !scheduledFolderIds.has(folder.id);
+  });
 
   // Agrupar historias por día de la semana
   const storiesByDay = DAYS_OF_WEEK.reduce((acc, day) => {
@@ -293,6 +318,92 @@ export default function WeeklyCalendar({
         })}
       </div>
 
+      {/* Sección de Carpetas A Demanda (Sin días asignados en el calendario) */}
+      {onDemandFolders.length > 0 && (
+        <div className="bg-[#1E1E1E] border border-[rgba(255,255,255,0.08)] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[rgba(255,255,255,0.06)] pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[rgba(255,215,0,0.15)] text-[#FFD700] flex items-center justify-center font-bold">
+                <FolderIcon className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  Carpetas y Promos A Demanda
+                  <span className="px-2 py-0.5 rounded-full bg-[#FFD700]/15 text-[#FFD700] text-xs font-black border border-[#FFD700]/30">
+                    {onDemandFolders.length}
+                  </span>
+                </h3>
+                <p className="text-xs text-[#AAAAAA]">Carpetas listas para abrir y elegir qué producto o combo publicar en el momento</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {onDemandFolders.map(folder => {
+              const isPacks = folder.mode === 'packs';
+              const packsCount = folder.packs?.length || 0;
+              const itemsCount = folder.items?.length || 0;
+              
+              // Primer preview disponible (de items o de packs)
+              let thumbUrl = null;
+              if (isPacks && folder.packs?.[0]?.images?.[0]?.url) {
+                thumbUrl = folder.packs[0].images[0].url;
+              } else if (folder.items?.[0]?.url) {
+                thumbUrl = folder.items[0].url;
+              }
+
+              return (
+                <div
+                  key={folder.id}
+                  className="bg-[#141414] border border-[rgba(255,255,255,0.08)] hover:border-[#FFD700]/40 rounded-2xl p-3 flex items-center justify-between gap-3 transition-colors"
+                >
+                  <div
+                    className="w-14 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 cursor-pointer border border-[rgba(255,255,255,0.1)] group relative flex items-center justify-center"
+                    onClick={() => setSelectedFolderToLaunch(folder)}
+                    title="Abrir carpeta para publicar"
+                  >
+                    {thumbUrl ? (
+                      <img
+                        src={thumbUrl.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg')}
+                        alt={folder.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <FolderIcon className="w-6 h-6 text-[#666666]" />
+                    )}
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+                    <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-black/80 backdrop-blur-sm text-[10px] font-black text-[#FFD700]">
+                      {isPacks ? `${packsCount} pk` : `${itemsCount}`}
+                    </div>
+                  </div>
+
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <h4 className="text-xs font-bold text-white truncate" title={folder.name}>
+                      {folder.name}
+                    </h4>
+                    <div className="flex items-center gap-1.5 text-[11px] text-[#AAAAAA]">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: folder.color || '#FFD700' }} />
+                      <span className="truncate">
+                        {isPacks ? `${packsCount} promos/combos` : `${itemsCount} fotos/videos`}
+                      </span>
+                    </div>
+                    <div className="pt-1 flex items-center gap-2">
+                      <button
+                        onClick={() => setSelectedFolderToLaunch(folder)}
+                        className="px-2.5 py-1 rounded-xl bg-[#FFD700] text-black text-xs font-extrabold flex items-center gap-1.5 hover:bg-[#E6C200] transition-colors shadow-sm"
+                      >
+                        <Send className="w-3 h-3" />
+                        Elegir qué publicar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Sección de Historias A Demanda (Sin días asignados) */}
       {onDemandStories.length > 0 && (
         <div className="bg-[#1E1E1E] border border-[rgba(255,255,255,0.08)] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
@@ -303,7 +414,7 @@ export default function WeeklyCalendar({
               </div>
               <div>
                 <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
-                  Historias A Demanda (Sin días fijos)
+                  Historias Sueltas A Demanda
                   <span className="px-2 py-0.5 rounded-full bg-[#FFD700]/15 text-[#FFD700] text-xs font-black border border-[#FFD700]/30">
                     {onDemandStories.length}
                   </span>
@@ -378,6 +489,14 @@ export default function WeeklyCalendar({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Modal de lanzamiento a demanda para carpetas */}
+      {selectedFolderToLaunch && (
+        <FolderLaunchModal
+          folder={selectedFolderToLaunch}
+          onClose={() => setSelectedFolderToLaunch(null)}
+        />
       )}
     </div>
   );
