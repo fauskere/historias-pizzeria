@@ -228,15 +228,17 @@ async function runScheduler() {
   };
   const currentDay = DAY_MAP[rawDay] || rawDay;
 
-  // Hora actual en Argentina en formato HH:MM
-  const timeParts = new Intl.DateTimeFormat('en-US', {
+  // Hora actual en Argentina en formato HH:MM (usando hourCycle 'h23' para evitar que las 00:00 se interpreten como 24:00)
+  const timeFormatter = new Intl.DateTimeFormat('en-GB', {
     timeZone,
-    hour12: false,
+    hourCycle: 'h23',
     hour: '2-digit',
     minute: '2-digit'
-  }).format(now).split(':');
+  });
+  const timeParts = timeFormatter.format(now).split(':');
 
-  const currentHour = parseInt(timeParts[0], 10);
+  let currentHour = parseInt(timeParts[0], 10);
+  if (currentHour >= 24) currentHour = 0; // Seguridad absoluta ante medianoche
   const currentMinute = parseInt(timeParts[1], 10);
   const currentMinutesTotal = currentHour * 60 + currentMinute;
   const currentTimeStr = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
@@ -299,13 +301,21 @@ async function runScheduler() {
     if (!story.days || !Array.isArray(story.days) || !story.days.includes(currentDay)) continue;
     if (!story.time) continue;
 
-    // Comparar si la hora programada ya llegó en el día de hoy
+    // Comparar la hora programada con la hora actual
     const [sHour, sMin] = story.time.split(':').map(n => parseInt(n, 10));
     const storyMinutesTotal = sHour * 60 + sMin;
 
     // Si la hora programada todavía no llegó hoy:
     if (currentMinutesTotal < storyMinutesTotal) {
       console.log(`La historia "${story.title}" está programada para más tarde (${story.time} hs).`);
+      continue;
+    }
+
+    // Ventana de tolerancia: solo disparar si pasaron como máximo 25 minutos desde su horario programado.
+    // Esto evita que si se crea o activa una historia horas después, o ante un cambio de día, se dispare fuera de hora.
+    const minutesPassed = currentMinutesTotal - storyMinutesTotal;
+    if (minutesPassed > 25) {
+      console.log(`La historia "${story.title}" (${story.time} hs) quedó fuera de la ventana de ejecución (${minutesPassed} min transcurridos). Saltando.`);
       continue;
     }
 
