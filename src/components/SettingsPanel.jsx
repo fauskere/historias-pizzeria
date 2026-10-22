@@ -374,6 +374,11 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
           </div>
         </form>
       </div>
+
+      {/* VERSION DEL PROGRAMA */}
+      <div className="text-center pt-2 pb-4 text-[11px] text-[#777777] font-mono select-none">
+        Programador de Contenido <span className="text-[#AAAAAA] font-bold">v1.1.0</span>
+      </div>
     </div>
   );
 }
