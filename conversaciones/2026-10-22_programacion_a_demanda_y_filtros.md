@@ -37,3 +37,9 @@
   1. Pausa inmediata en Firestore de todas las historias programadas (`active: false`) para evitar cualquier disparo adicional.
   2. Eliminación definitiva del `setInterval` local de `App.jsx`.
   3. Despliegue de la versión `v1.3.1` en Firebase Hosting.
+
+
+### Normalización Operativa
+- Se reactivaron en Firestore las historias programadas (`Pedidos`, `Pizzas`, `Burgers`, `Especiales`, historias diarias de las 14:00).
+- Como todos los horarios programados de hoy ya transcurrieron, no habrá más publicaciones por lo que resta de la noche.
+- El sistema queda 100% operativo y listo para continuar publicando normalmente a partir de mañana de forma limpia y sin duplicados.

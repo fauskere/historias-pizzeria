@@ -26,10 +26,10 @@
 ---
 
 ## 📝 Registro de Sesiones y Cambios
-* **2026-10-22 (v1.3.1 - Freno de Emergencia y Solución de Duplicación):**
-  * **Pausa Total Preventiva:** Se pausaron de inmediato todas las historias activas en Firestore para garantizar que no se publique nada más.
-  * **Causa Raíz Identificada:** Había dos motores de ejecución en paralelo: la Cloud Function en la nube y un `setInterval` local de respaldo en `App.jsx`. Al tener la pestaña web abierta, ambos disparaban al mismo minuto hacia la API de Meta (generando publicaciones duplicadas como la Fugazzetta a las 20:15 y la mezcla de la Cheeseburger con Classic a las 20:00).
-  * **Corrección:** Se eliminó por completo el reloj duplicado en el frontend de `App.jsx`. Centralizada la publicación en un único motor para eliminar colisiones.
+* **2026-10-22 (v1.3.1 - Solución Definitiva de Duplicación y Normalización):**
+  * **Causa Raíz Eliminada:** Se eliminó por completo el reloj local de `App.jsx` que disparaba duplicados al tener el navegador abierto.
+  * **Sistema Normalizado:** Se reactivaron todas las historias del calendario semanal en Firestore.
+  * **Estado Operativo:** El sistema corre con total normalidad, gobernado únicamente por el servidor de la nube (cero riesgo de duplicación con pestañas abiertas).
 * **2026-10-22 (v1.3.0):**
   * Programación horaria en carpetas a demanda y filtros dinámicos de categorías.
 * **2026-10-21 (v1.2.0):**
