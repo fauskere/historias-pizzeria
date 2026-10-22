@@ -28,6 +28,8 @@ const DAYS_OF_WEEK = [
 export default function WeeklyCalendar({ 
   stories, 
   folders = [],
+  categories = [],
+  onStoryCreated,
   onToggleActive, 
   onDeleteStory, 
   onPreviewStory,
@@ -77,13 +79,20 @@ export default function WeeklyCalendar({
     return acc;
   }, {});
 
-  const categoryBadges = [
+  const defaultBadges = [
     { key: 'all', label: 'Todas las historias' },
     { key: 'promo', label: 'Promociones' },
     { key: 'menu', label: 'Carta / Menú' },
     { key: 'hours', label: 'Horarios' },
     { key: 'news', label: 'Novedades' }
   ];
+
+  const categoryBadges = categories && categories.length > 0
+    ? [
+        { key: 'all', label: 'Todas las historias' },
+        ...categories.map(c => ({ key: c.id, label: c.name }))
+      ]
+    : defaultBadges;
 
   return (
     <div className="space-y-6">
@@ -494,6 +503,7 @@ export default function WeeklyCalendar({
         <FolderLaunchModal
           folder={selectedFolderToLaunch}
           onClose={() => setSelectedFolderToLaunch(null)}
+          onScheduleStory={onStoryCreated}
         />
       )}
     </div>

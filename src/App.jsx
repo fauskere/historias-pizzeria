@@ -257,6 +257,8 @@ export default function App() {
               <WeeklyCalendar
                 stories={stories}
                 folders={folders}
+                categories={categories}
+                onStoryCreated={handleStoryCreated}
                 onToggleActive={handleToggleActive}
                 onDeleteStory={handleDeleteStory}
                 onPreviewStory={setPreviewStory}

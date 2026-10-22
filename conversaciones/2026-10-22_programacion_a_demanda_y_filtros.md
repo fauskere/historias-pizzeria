@@ -1,0 +1,24 @@
+# Resumen de Sesión - 2026-10-22
+
+## Objetivo de la Sesión
+1. Permitir que al abrir una carpeta de contenido a demanda (ej. "promo burger") desde el Calendario Semanal, el usuario pueda elegir un horario específico para hoy antes de publicar, en lugar de publicarse únicamente en el instante.
+2. Incorporar en el Calendario Semanal los filtros dinámicos con las categorías nuevas creadas por el usuario (ej. especiales, pizzas, burgers).
+3. Desplegar los cambios actualizados a Firebase Hosting y actualizar versión visible.
+
+## Acciones Realizadas
+1. **Modal de Carpetas (`FolderLaunchModal.jsx`):**
+   - Se añadió un selector de modo superior con dos opciones claras:
+     - ⏰ **Programar para Hoy** (modo por defecto)
+     - ⚡ **Publicar al Instante**
+   - Al seleccionar "Programar para Hoy", se presenta un campo selector de hora (`HH:mm`) junto con accesos rápidos para horarios comunes de gastronomía (`19:30`, `20:00`, `20:30`, `21:00`, `21:30`) y un checkbox opcional de repetición semanal.
+   - El botón de cada producto/pack cambia dinámicamente a "Agendar a las [HH:MM]", guardando la historia en Firestore/local y cerrando con confirmación visual.
+2. **Filtros de Categorías Dinámicos (`WeeklyCalendar.jsx` y `App.jsx`):**
+   - Se pasaron `categories` y `onStoryCreated` a `WeeklyCalendar`.
+   - Se reemplazó el array estático de categorías por una lista dinámica que combina "Todas las historias" con las categorías personalizadas añadidas por el usuario.
+   - Al filtrar por una categoría (ej. burgers), se filtran tanto las historias del calendario como las carpetas a demanda asociadas.
+3. **Soporte de Publicación de Packs:**
+   - Se habilitó la publicación secuencial de packs en el disparador automático local y en cloud functions.
+4. **Build y Despliegue:**
+   - Versión incrementada a `v1.3.0`.
+   - Compilación exitosa en 337ms.
+   - Despliegue completado a Firebase Hosting: `https://programador-de-contenido.web.app`.
