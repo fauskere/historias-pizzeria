@@ -43,3 +43,9 @@
 - Se reactivaron en Firestore las historias programadas (`Pedidos`, `Pizzas`, `Burgers`, `Especiales`, historias diarias de las 14:00).
 - Como todos los horarios programados de hoy ya transcurrieron, no habrá más publicaciones por lo que resta de la noche.
 - El sistema queda 100% operativo y listo para continuar publicando normalmente a partir de mañana de forma limpia y sin duplicados.
+
+
+### Publicación Manual Única Vez (Pizzas - Especial)
+- A solicitud del usuario para reponer la historia de pizza del día, se publicó por única vez el video **HISTORIA ESPECIAL VIDEO** de la carpeta Pizzas directamente en Instagram Stories.
+- ID de publicación en Instagram: `18155574661518926`.
+- Estado: Éxito total y registrado en el historial de Firestore.
