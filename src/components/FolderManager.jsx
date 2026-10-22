@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Folder, FolderPlus, ArrowLeft, Upload, Trash2, RotateCcw, 
-  Sparkles, CheckCircle2, Clock, Layers, Plus, ArrowUp, ArrowDown, Tag, X
+  Sparkles, CheckCircle2, Clock, Layers, Plus, ArrowUp, ArrowDown, Tag, X, Film
 } from 'lucide-react';
 import { uploadToCloudinary } from '../services/cloudinary';
 
