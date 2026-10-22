@@ -22,3 +22,18 @@
    - Versión incrementada a `v1.3.0`.
    - Compilación exitosa en 337ms.
    - Despliegue completado a Firebase Hosting: `https://programador-de-contenido.web.app`.
+
+
+---
+
+## Freno de Emergencia y Eliminación de Duplicación (v1.3.1)
+- **Problema Reportado:** A las 20:15 hs la historia de "Especiales" (Fugazzetta Rellena) se publicó dos veces, sumado a la colisión previa a las 20:00 hs.
+- **Diagnóstico:**
+  - En la base de datos y logs se constató que existían dos disparadores automáticos activos en paralelo:
+    1. Cloud Function `publishScheduledStories` corriendo cada 5 minutos en Firebase Cloud.
+    2. Un `setInterval(checkScheduledStories, 25000)` en `App.jsx` que corría en el navegador web si la página estaba abierta.
+  - Cuando llegaba el horario exacto, ambos disparadores enviaban la orden a la API de Meta, duplicando publicaciones e intercalando packs.
+- **Acciones Tomadas:**
+  1. Pausa inmediata en Firestore de todas las historias programadas (`active: false`) para evitar cualquier disparo adicional.
+  2. Eliminación definitiva del `setInterval` local de `App.jsx`.
+  3. Despliegue de la versión `v1.3.1` en Firebase Hosting.
