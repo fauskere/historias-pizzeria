@@ -6,12 +6,10 @@ import {
   Eye, 
   Trash2, 
   Plus, 
-  Film, 
-  Sparkles,
+  Film,
   Zap,
   Pencil,
   Folder as FolderIcon,
-  Layers,
   Send
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';

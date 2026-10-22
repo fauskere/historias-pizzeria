@@ -1,22 +1,18 @@
 import React, { useState } from 'react';
 import { 
   Film, 
-  Clock, 
-  Repeat, 
+  Clock,
   Trash2, 
   Power, 
   Eye, 
   CheckCircle2, 
-  PauseCircle, 
-  Filter,
+  PauseCircle,
   Search,
   Plus,
   Send,
-  Zap,
   Check,
   Pencil
 } from 'lucide-react';
-import { Instagram, Facebook } from './SocialIcons';
 import { fetchMetaSettings, addPublicationLog } from '../services/firebase';
 import { publishInstagramStory, publishFacebookStory } from '../services/metaApi';
 

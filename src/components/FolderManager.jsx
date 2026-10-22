@@ -9,7 +9,7 @@ export default function FolderManager({
   folders = [], 
   categories = [],
   onSave, 
-  onDelete, 
+  _onDelete,
   onResetCycle,
   onSaveCategory,
   onDeleteCategory

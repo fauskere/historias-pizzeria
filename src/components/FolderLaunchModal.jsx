@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Zap, CheckCircle2, AlertCircle, Film, Send, Sparkles, Layers, Check } from 'lucide-react';
+import { X, Zap, CheckCircle2, AlertCircle, Film, Send, Layers } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
 import { fetchMetaSettings, addPublicationLog } from '../services/firebase';
 import { publishInstagramStory, publishFacebookStory } from '../services/metaApi';

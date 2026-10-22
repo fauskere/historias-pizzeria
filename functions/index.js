@@ -11,13 +11,11 @@ const db = admin.firestore();
 const GRAPH_API_VERSION = 'v21.0';
 const GRAPH_BASE_URL = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
 
-const DAYS_OF_WEEK = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
-
 /**
  * Función programada que corre cada 5 minutos
  * Revisa historias activas programadas para el día y hora actual
  */
-exports.publishScheduledStories = onSchedule('every 5 minutes', async (event) => {
+exports.publishScheduledStories = onSchedule('every 5 minutes', async (_event) => {
   console.log('Iniciando revisión de historias programadas...');
 
   // 1. Obtener la configuración de Meta guardada en Firestore

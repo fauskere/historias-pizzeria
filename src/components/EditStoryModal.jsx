@@ -2,17 +2,13 @@ import React, { useState, useRef } from 'react';
 import { 
   X, 
   Upload, 
-  Film, 
-  Image as ImageIcon, 
-  Clock, 
+  Film,
   Check, 
   AlertCircle, 
   Pencil,
-  Repeat,
   RefreshCw,
   Folder
 } from 'lucide-react';
-import { Instagram, Facebook } from './SocialIcons';
 import { uploadStoryMedia } from '../services/firebase';
 import { getFolderMediaInfo } from './StoryCreator';
 
@@ -34,28 +30,26 @@ const CATEGORIES = [
 ];
 
 export default function EditStoryModal({ story, onClose, onSave, folders = [], categories = [] }) {
-  if (!story) return null;
-
   const activeCategories = categories.length > 0
     ? categories.map(c => ({ key: c.id, label: c.name, color: '#FFD700', desc: c.name }))
     : CATEGORIES;
 
   const [sourceType, setSourceType] = useState(
-    story.sourceType || (story.folderId ? 'folder' : 'single')
+    story?.sourceType || (story?.folderId ? 'folder' : 'single')
   );
   const [selectedFolderId, setSelectedFolderId] = useState(
-    story.folderId || (folders[0]?.id || '')
+    story?.folderId || (folders[0]?.id || '')
   );
-  const [title, setTitle] = useState(story.title || '');
-  const [category, setCategory] = useState(story.category || activeCategories[0]?.key || 'promo');
-  const [selectedDays, setSelectedDays] = useState(story.days || []);
-  const [time, setTime] = useState(story.time || '19:30');
-  const [repeatWeekly, setRepeatWeekly] = useState(story.repeatWeekly !== false);
-  const [platforms, setPlatforms] = useState(story.platforms || { instagram: true, facebook: true });
+  const [title, setTitle] = useState(story?.title || '');
+  const [category, _setCategory] = useState(story?.category || activeCategories[0]?.key || 'promo');
+  const [selectedDays, setSelectedDays] = useState(story?.days || []);
+  const [time, setTime] = useState(story?.time || '19:30');
+  const [repeatWeekly, setRepeatWeekly] = useState(story?.repeatWeekly !== false);
+  const [platforms, _setPlatforms] = useState(story?.platforms || { instagram: true, facebook: true });
 
   const [mediaFile, setMediaFile] = useState(null);
-  const [mediaPreview, setMediaPreview] = useState(story.mediaUrl);
-  const [mediaType, setMediaType] = useState(story.mediaType || 'image');
+  const [mediaPreview, setMediaPreview] = useState(story?.mediaUrl || '');
+  const [mediaType, setMediaType] = useState(story?.mediaType || 'image');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState(null);
@@ -171,6 +165,8 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
       setUploadProgress(0);
     }
   };
+
+  if (!story) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">

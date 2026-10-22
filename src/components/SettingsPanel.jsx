@@ -12,7 +12,6 @@ import {
   Check, 
   Save 
 } from 'lucide-react';
-import { Instagram, Facebook } from './SocialIcons';
 import { testMetaConnection } from '../services/metaApi';
 import { getMetaSettings, fetchMetaSettings, saveMetaSettings, getSavedFirebaseConfig, saveFirebaseConfig } from '../services/firebase';
 
@@ -377,7 +376,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
 
       {/* VERSION DEL PROGRAMA */}
       <div className="text-center pt-2 pb-4 text-[11px] text-[#777777] font-mono select-none">
-        Programador de Contenido <span className="text-[#AAAAAA] font-bold">v1.1.0</span>
+        Programador de Contenido <span className="text-[#AAAAAA] font-bold">v1.2.0</span>
       </div>
     </div>
   );

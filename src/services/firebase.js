@@ -1,7 +1,7 @@
 // Configuración y servicios de Firebase con soporte offline / fallback local
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, getDoc, doc, setDoc, deleteDoc, updateDoc, addDoc, query, orderBy, limit } from 'firebase/firestore';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { getStorage } from 'firebase/storage';
 import { uploadToCloudinary } from './cloudinary';
 
 
@@ -11,7 +11,6 @@ const LOCAL_STORAGE_KEY_SETTINGS = 'pizzeria_settings_local';
 const LOCAL_STORAGE_KEY_LOGS = 'pizzeria_logs_local';
 
 // Historias iniciales vacías (sin ejemplos ficticios)
-const DEFAULT_SAMPLE_STORIES = [];
 
 // Configuración oficial del proyecto Firebase "Programador de Contenido"
 export const DEFAULT_FIREBASE_CONFIG = {

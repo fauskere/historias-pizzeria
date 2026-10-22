@@ -22,3 +22,19 @@ Sincronizar y traer el proyecto "Programador de Contenido" desde la PC anterior 
 ## Próximos Pasos Sugeridos
 - Iniciar el servidor local (`npm run dev`) cuando se desee operar.
 - Optimizar los avisos de linting de React/oxlint si se desea pulir warnings.
+
+
+---
+
+## Ampliación de Sesión - Optimización & Code Splitting (v1.2.0)
+- **Implementación de Code Splitting:**
+  - Configurado `React.lazy` y `<Suspense>` en `src/App.jsx` para todos los submódulos y modales secundarios.
+  - Configurado `manualChunks` en `vite.config.js` dividiendo paquetes en `vendor-react`, `firebase`, `icons` y app principal.
+  - Reducción drástica del tamaño del bundle de entrada de **872 kB a 146 kB (31 kB gzip)**.
+- **Corrección de Error Crítico en Hooks:**
+  - En `EditStoryModal.jsx`, se corrigió el retorno condicional previo a `useState` que violaba la regla de hooks de React.
+- **Limpieza de Warnings y Código Muerto:**
+  - Se eliminaron todos los imports y variables huérfanas en 8 componentes y en Cloud Functions.
+  - Se redujeron a 0 los errores de linting.
+- **Versión:**
+  - Se actualizó `package.json` y `SettingsPanel.jsx` a `v1.2.0`.

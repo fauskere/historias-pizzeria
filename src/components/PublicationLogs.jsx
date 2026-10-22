@@ -4,12 +4,8 @@ import {
   Send, 
   CheckCircle2, 
   AlertCircle, 
-  Clock, 
-  Sparkles,
-  ExternalLink,
-  Film
+  Clock,
 } from 'lucide-react';
-import { Instagram, Facebook } from './SocialIcons';
 import { getPublicationLogs, fetchPublicationLogs, addPublicationLog, getMetaSettings } from '../services/firebase';
 import { publishInstagramStory, publishFacebookStory } from '../services/metaApi';
 

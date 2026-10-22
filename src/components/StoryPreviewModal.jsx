@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Pizza, Clock, Power, Film, Send, CheckCircle2, AlertCircle, Pencil } from 'lucide-react';
+import { X, Pizza, Power, Send, CheckCircle2, AlertCircle, Pencil } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
 import { fetchMetaSettings, addPublicationLog } from '../services/firebase';
 import { publishInstagramStory, publishFacebookStory } from '../services/metaApi';

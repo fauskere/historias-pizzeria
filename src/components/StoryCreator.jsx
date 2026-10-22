@@ -3,8 +3,6 @@ import {
   Upload, 
   Film, 
   Image as ImageIcon, 
-  Clock, 
-  Calendar, 
   Check, 
   Sparkles, 
   AlertCircle,
