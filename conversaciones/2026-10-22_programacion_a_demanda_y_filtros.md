@@ -49,3 +49,10 @@
 - A solicitud del usuario para reponer la historia de pizza del día, se publicó por única vez el video **HISTORIA ESPECIAL VIDEO** de la carpeta Pizzas directamente en Instagram Stories.
 - ID de publicación en Instagram: `18155574661518926`.
 - Estado: Éxito total y registrado en el historial de Firestore.
+
+
+### Soporte Nativo de Videos en Facebook Page Stories (v1.4.0)
+- **Causa del Faltante en Facebook:** El código original de Facebook Stories solo implementaba `photo_stories` (imágenes fijas). Al ser videos (`.mp4`), el código anterior lanzaba una excepción y omitía Facebook.
+- **Implementación Técnica:** Se implementó el protocolo completo de Meta `video_stories` en tres fases (`upload_phase=start`, subida binaria directa del buffer a `rupload.facebook.com` y `upload_phase=finish`).
+- **Publicación Inmediata:** Se ejecutó la subida y se publicó exitosamente el video de **Pizza Especial** en la página de Facebook de la pizzería (Post ID: `1427224285618148`).
+- **Resultado:** Tanto Instagram como Facebook tienen ahora la historia en vivo.

@@ -99,12 +99,13 @@ exports.publishScheduledStories = onSchedule('every 5 minutes', async (_event) =
       }
 
       // Publicar en Facebook Page Stories
-      if (story.platforms?.facebook && facebookPageId && story.mediaType === 'image') {
+      if (story.platforms?.facebook && facebookPageId) {
         try {
           const fbRes = await publishFacebookStory({
             facebookPageId,
             pageAccessToken,
-            mediaUrl: story.mediaUrl
+            mediaUrl: story.mediaUrl,
+            mediaType: story.mediaType || 'image'
           });
           results.push({ platform: 'facebook', success: true, storyId: fbRes.post_id || fbRes.photo_id });
         } catch (err) {
