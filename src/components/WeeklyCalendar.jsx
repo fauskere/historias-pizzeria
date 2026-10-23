@@ -10,7 +10,9 @@ import {
   Zap, 
   Pencil, 
   Folder as FolderIcon, 
-  Send 
+  Send,
+  Filter,
+  ChevronDown
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
 import FolderLaunchModal from './FolderLaunchModal';
@@ -117,24 +119,23 @@ export default function WeeklyCalendar({
           </p>
         </div>
 
-        {/* Filter Pills estilo Big Tech */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-[#121212] p-1.5 rounded-2xl border border-white/[0.06]">
-          {categoryBadges.map(cat => {
-            const isActive = selectedCategory === cat.key;
-            return (
-              <button
-                key={cat.key}
-                onClick={() => setSelectedCategory(cat.key)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 ${
-                  isActive
-                    ? 'bg-[#FFD700] text-black shadow-md shadow-[rgba(255,215,0,0.25)]'
-                    : 'text-[#AAAAAA] hover:text-white hover:bg-white/[0.05]'
-                }`}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
+        {/* Desplegable de Categorías Compacto */}
+        <div className="flex items-center gap-2 self-start lg:self-auto">
+          <div className="relative inline-flex items-center">
+            <Filter className="w-3.5 h-3.5 text-[#FFD700] absolute left-3.5 pointer-events-none" />
+            <select
+              value={selectedCategory}
+              onChange={e => setSelectedCategory(e.target.value)}
+              className="appearance-none pl-9 pr-9 py-2.5 rounded-2xl bg-[#121212] border border-white/10 hover:border-[#FFD700]/40 text-xs font-bold text-white focus:outline-none focus:border-[#FFD700] transition-all cursor-pointer shadow-inner min-w-[200px]"
+            >
+              {categoryBadges.map(cat => (
+                <option key={cat.key} value={cat.key} className="bg-[#181818] text-white py-1.5 font-medium">
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-[#AAAAAA] absolute right-3 pointer-events-none" />
+          </div>
         </div>
       </div>
 
