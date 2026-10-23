@@ -314,7 +314,7 @@ async function runScheduler() {
     // Ventana de tolerancia: solo disparar si pasaron como máximo 25 minutos desde su horario programado.
     // Esto evita que si se crea o activa una historia horas después, o ante un cambio de día, se dispare fuera de hora.
     const minutesPassed = currentMinutesTotal - storyMinutesTotal;
-    if (minutesPassed > 25) {
+    if (minutesPassed > 35) {
       console.log(`La historia "${story.title}" (${story.time} hs) quedó fuera de la ventana de ejecución (${minutesPassed} min transcurridos). Saltando.`);
       continue;
     }

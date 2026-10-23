@@ -1,0 +1,27 @@
+name: Auto-Publicador Historias Pizzería
+
+on:
+  schedule:
+    # Se ejecuta cada 20 minutos durante el horario comercial de la pizzería (11:00 a 01:00 hs Argentina / 14:00 a 04:00 UTC)
+    # Al no correr de madrugada (01:00 a 11:00 hs), consume solo ~1.260 minutos de los 2.000 minutos mensuales gratuitos de GitHub (100% GRATIS)
+    - cron: '*/20 14-23,0-3 * * *'
+  workflow_dispatch: # Permite probar o ejecutar manualmente desde GitHub con un clic
+
+jobs:
+  publish-stories:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Ejecutar Verificación y Publicación en Meta
+        run: node scripts/cloud-scheduler.js
+        env:
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          META_INSTAGRAM_ACCOUNT_ID: ${{ secrets.META_INSTAGRAM_ACCOUNT_ID }}
+          META_FACEBOOK_PAGE_ID: ${{ secrets.META_FACEBOOK_PAGE_ID }}
