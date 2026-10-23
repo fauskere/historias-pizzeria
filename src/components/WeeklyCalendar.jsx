@@ -6,11 +6,11 @@ import {
   Eye, 
   Trash2, 
   Plus, 
-  Film,
-  Zap,
-  Pencil,
-  Folder as FolderIcon,
-  Send
+  Film, 
+  Zap, 
+  Pencil, 
+  Folder as FolderIcon, 
+  Send 
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
 import FolderLaunchModal from './FolderLaunchModal';
@@ -27,13 +27,13 @@ const DAYS_OF_WEEK = [
 
 export default function WeeklyCalendar({ 
   stories, 
-  folders = [],
-  categories = [],
-  onStoryCreated,
+  folders = [], 
+  categories = [], 
+  onStoryCreated, 
   onToggleActive, 
   onDeleteStory, 
-  onPreviewStory,
-  onEditStory,
+  onPreviewStory, 
+  onEditStory, 
   onAddNewForDay 
 }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -94,10 +94,12 @@ export default function WeeklyCalendar({
       ]
     : defaultBadges;
 
+  const totalActiveStories = stories.filter(s => s.active).length;
+
   return (
     <div className="space-y-6">
       {/* Header & Filter Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#1E1E1E] p-5 sm:p-6 rounded-3xl border border-[rgba(255,255,255,0.08)] shadow-xl">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#1E1E1E] p-5 sm:p-6 rounded-3xl border border-white/[0.08] shadow-xl">
         <div>
           <div className="flex items-center gap-2.5">
             <span className="p-2 rounded-xl bg-[rgba(255,215,0,0.15)] text-[#FFD700]">
@@ -106,24 +108,27 @@ export default function WeeklyCalendar({
             <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
               Calendario Semanal
             </h1>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/[0.06] text-[#AAAAAA] border border-white/[0.08]">
+              {totalActiveStories} activas
+            </span>
           </div>
           <p className="text-xs sm:text-sm text-[#AAAAAA] mt-1.5">
-            Las historias activas se publican solas en Instagram y Facebook cada semana sin que tengas la web abierta.
+            Automatización autónoma: tus historias se publican solas en Instagram y Facebook cada semana.
           </p>
         </div>
 
-        {/* Filter Pills estilo Pizzeria Manager */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-[#121212] p-1.5 rounded-2xl border border-[rgba(255,255,255,0.06)]">
+        {/* Filter Pills estilo Big Tech */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-[#121212] p-1.5 rounded-2xl border border-white/[0.06]">
           {categoryBadges.map(cat => {
             const isActive = selectedCategory === cat.key;
             return (
               <button
                 key={cat.key}
                 onClick={() => setSelectedCategory(cat.key)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                   isActive
-                    ? 'bg-[#FFD700] text-black shadow-md shadow-[rgba(255,215,0,0.2)]'
-                    : 'text-[#AAAAAA] hover:text-white hover:bg-[#2C2C2C]'
+                    ? 'bg-[#FFD700] text-black shadow-md shadow-[rgba(255,215,0,0.25)]'
+                    : 'text-[#AAAAAA] hover:text-white hover:bg-white/[0.05]'
                 }`}
               >
                 {cat.label}
@@ -142,14 +147,18 @@ export default function WeeklyCalendar({
           return (
             <div
               key={day.key}
-              className={`flex flex-col rounded-3xl border transition-all ${
+              className={`flex flex-col rounded-3xl border transition-all duration-200 relative overflow-hidden ${
                 isToday
-                  ? 'bg-[#181818] border-[#FFD700] shadow-xl shadow-[rgba(255,215,0,0.1)] ring-1 ring-[#FFD700]/30'
-                  : 'bg-[#1E1E1E] border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.18)]'
+                  ? 'bg-[#181818] border-[#FFD700] shadow-xl shadow-[rgba(255,215,0,0.12)] ring-1 ring-[#FFD700]/30'
+                  : 'bg-[#1E1E1E] border-white/[0.08] hover:border-white/[0.18]'
               }`}
             >
+              {isToday && (
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FFD700] to-transparent" />
+              )}
+
               {/* Day Header */}
-              <div className="p-3.5 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
+              <div className="p-3.5 border-b border-white/[0.06] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className={`font-extrabold text-sm ${isToday ? 'text-[#FFD700]' : 'text-white'}`}>
                     {day.label}
@@ -160,7 +169,7 @@ export default function WeeklyCalendar({
                     </span>
                   )}
                 </div>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-[#121212] text-[#AAAAAA] font-bold border border-[rgba(255,255,255,0.06)]">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-[#121212] text-[#AAAAAA] font-bold border border-white/[0.06]">
                   {dayStories.length}
                 </span>
               </div>
@@ -168,11 +177,11 @@ export default function WeeklyCalendar({
               {/* Day Stories Container */}
               <div className="p-2.5 flex-1 space-y-2.5 min-h-[170px]">
                 {dayStories.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-4 border border-dashed border-[rgba(255,255,255,0.06)] rounded-2xl">
+                  <div className="h-full flex flex-col items-center justify-center text-center p-4 border border-dashed border-white/[0.06] rounded-2xl">
                     <p className="text-xs text-[#666666] mb-2 font-medium">Sin historias</p>
                     <button
                       onClick={() => onAddNewForDay(day.key)}
-                      className="text-xs text-[#FFD700] hover:text-[#E6C200] font-bold flex items-center gap-1 hover:underline"
+                      className="text-xs text-[#FFD700] hover:text-[#E6C200] font-bold flex items-center gap-1 hover:underline transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Programar
@@ -182,17 +191,17 @@ export default function WeeklyCalendar({
                   dayStories.map(story => (
                     <div
                       key={`${day.key}-${story.id}`}
-                      className={`group relative rounded-2xl border p-2.5 transition-all ${
+                      className={`group relative rounded-2xl border p-2.5 transition-all duration-200 ${
                         story.active
-                          ? 'bg-[#141414] border-[rgba(255,255,255,0.08)] hover:border-[#FFD700]/50 shadow-sm'
-                          : 'bg-[#121212] border-[rgba(255,255,255,0.04)] opacity-50 hover:opacity-100'
+                          ? 'bg-[#141414] border-white/[0.08] hover:border-[#FFD700]/50 shadow-sm'
+                          : 'bg-[#121212] border-white/[0.04] opacity-50 hover:opacity-100'
                       }`}
                     >
                       {/* Thumbnail & Badges */}
                       <div className="flex gap-2.5 items-start">
                         {/* 9:16 Mini Preview */}
                         <div 
-                          className="relative w-12 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 cursor-pointer border border-[rgba(255,255,255,0.1)] group/thumb"
+                          className="relative w-12 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 cursor-pointer border border-white/[0.1] group/thumb shadow-sm"
                           onClick={() => onPreviewStory(story)}
                           title="Clic para ver vista previa completa"
                         >
@@ -202,7 +211,7 @@ export default function WeeklyCalendar({
                             className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300"
                           />
                           {story.mediaType === 'video' && (
-                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                            <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
                               <Film className="w-4 h-4 text-[#FFD700] drop-shadow" />
                             </div>
                           )}
@@ -218,7 +227,7 @@ export default function WeeklyCalendar({
                         <div className="flex-1 min-w-0">
                           {/* Time & Active Pill */}
                           <div className="flex items-center justify-between gap-1 mb-1">
-                            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-[#FFD700] bg-[rgba(255,215,0,0.12)] px-1.5 py-0.5 rounded-lg border border-[rgba(255,215,0,0.2)]">
+                            <span className="inline-flex items-center gap-1 font-mono text-[11px] font-extrabold text-[#FFD700] bg-[rgba(255,215,0,0.12)] px-1.5 py-0.5 rounded-lg border border-[rgba(255,215,0,0.2)]">
                               <Clock className="w-3 h-3" />
                               {story.time} hs
                             </span>
@@ -226,7 +235,7 @@ export default function WeeklyCalendar({
                             {/* Switch Rápido Activar / Pausar */}
                             <button
                               onClick={() => onToggleActive(story.id, !story.active)}
-                              className={`p-1 rounded-lg transition-colors ${
+                              className={`p-1 rounded-lg transition-colors duration-150 ${
                                 story.active
                                   ? 'text-[#00E096] hover:bg-[#00E096]/20'
                                   : 'text-[#666666] hover:bg-[#2C2C2C] hover:text-[#AAAAAA]'
@@ -260,12 +269,16 @@ export default function WeeklyCalendar({
                           </div>
 
                           {/* Platforms Icons */}
-                          <div className="flex items-center gap-1.5 mt-2 text-[#888888]">
+                          <div className="flex items-center gap-2 mt-2 text-[#888888]">
                             {story.platforms?.instagram && (
-                              <Instagram className="w-3 h-3 text-[#FFD700]" title="Instagram Stories" />
+                              <div className="text-[#FFD700] hover:text-[#E1306C] transition-colors" title="Instagram Stories">
+                                <Instagram className="w-3 h-3" />
+                              </div>
                             )}
                             {story.platforms?.facebook && (
-                              <Facebook className="w-3 h-3 text-[#FFD700]" title="Facebook Page Stories" />
+                              <div className="text-[#FFD700] hover:text-[#1877F2] transition-colors" title="Facebook Page Stories">
+                                <Facebook className="w-3 h-3" />
+                              </div>
                             )}
                             {story.repeatWeekly && (
                               <span className="text-[9px] text-[#888888] ml-auto font-bold" title="Se repite cada semana">
@@ -277,10 +290,10 @@ export default function WeeklyCalendar({
                       </div>
 
                       {/* Card Footer Actions */}
-                      <div className="mt-2.5 pt-2 border-t border-[rgba(255,255,255,0.06)] flex items-center justify-between text-[11px]">
+                      <div className="mt-2.5 pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
                         <button
                           onClick={() => onPreviewStory(story)}
-                          className="text-[#AAAAAA] hover:text-white flex items-center gap-1 font-semibold transition-colors"
+                          className="text-[#AAAAAA] hover:text-white flex items-center gap-1 font-semibold transition-colors duration-150"
                         >
                           <Eye className="w-3 h-3" />
                           Ver
@@ -289,7 +302,7 @@ export default function WeeklyCalendar({
                         {onEditStory && (
                           <button
                             onClick={() => onEditStory(story)}
-                            className="text-[#FFD700] hover:text-[#E6C200] flex items-center gap-1 font-bold transition-colors"
+                            className="text-[#FFD700] hover:text-[#E6C200] flex items-center gap-1 font-bold transition-colors duration-150"
                             title="Editar imagen, días u horario de esta historia"
                           >
                             <Pencil className="w-3 h-3" />
@@ -299,7 +312,7 @@ export default function WeeklyCalendar({
 
                         <button
                           onClick={() => onDeleteStory(story.id)}
-                          className="text-[#FF6B6B]/80 hover:text-[#FF3B30] flex items-center gap-1 transition-colors"
+                          className="text-[#FF6B6B]/80 hover:text-[#FF3B30] flex items-center gap-1 transition-colors duration-150"
                           title="Eliminar historia"
                         >
                           <Trash2 className="w-3 h-3" />
@@ -311,10 +324,10 @@ export default function WeeklyCalendar({
               </div>
 
               {/* Bottom Quick Add Button */}
-              <div className="p-2 border-t border-[rgba(255,255,255,0.06)] bg-[#121212]/50 rounded-b-3xl">
+              <div className="p-2 border-t border-white/[0.06] bg-[#121212]/50 rounded-b-3xl">
                 <button
                   onClick={() => onAddNewForDay(day.key)}
-                  className="w-full py-1.5 px-2 rounded-xl text-xs font-bold text-[#AAAAAA] hover:text-[#FFD700] hover:bg-[#2C2C2C] flex items-center justify-center gap-1 transition-colors"
+                  className="w-full py-1.5 px-2 rounded-xl text-xs font-bold text-[#AAAAAA] hover:text-[#FFD700] hover:bg-white/[0.05] flex items-center justify-center gap-1 transition-all duration-150"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Agregar a {day.short}
@@ -327,8 +340,8 @@ export default function WeeklyCalendar({
 
       {/* Sección de Carpetas A Demanda (Sin días asignados en el calendario) */}
       {onDemandFolders.length > 0 && (
-        <div className="bg-[#1E1E1E] border border-[rgba(255,255,255,0.08)] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[rgba(255,255,255,0.06)] pb-3">
+        <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-[rgba(255,215,0,0.15)] text-[#FFD700] flex items-center justify-center font-bold">
                 <FolderIcon className="w-4 h-4" />
@@ -362,10 +375,10 @@ export default function WeeklyCalendar({
               return (
                 <div
                   key={folder.id}
-                  className="bg-[#141414] border border-[rgba(255,255,255,0.08)] hover:border-[#FFD700]/40 rounded-2xl p-3 flex items-center justify-between gap-3 transition-colors"
+                  className="bg-[#141414] border border-white/[0.08] hover:border-[#FFD700]/40 rounded-2xl p-3 flex items-center justify-between gap-3 transition-colors duration-200"
                 >
                   <div
-                    className="w-14 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 cursor-pointer border border-[rgba(255,255,255,0.1)] group relative flex items-center justify-center"
+                    className="w-14 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 cursor-pointer border border-white/[0.1] group relative flex items-center justify-center shadow-sm"
                     onClick={() => setSelectedFolderToLaunch(folder)}
                     title="Abrir carpeta para publicar"
                   >
@@ -373,7 +386,7 @@ export default function WeeklyCalendar({
                       <img
                         src={thumbUrl.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg')}
                         alt={folder.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                       />
                     ) : (
                       <FolderIcon className="w-6 h-6 text-[#666666]" />
@@ -413,8 +426,8 @@ export default function WeeklyCalendar({
 
       {/* Sección de Historias A Demanda (Sin días asignados) */}
       {onDemandStories.length > 0 && (
-        <div className="bg-[#1E1E1E] border border-[rgba(255,255,255,0.08)] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[rgba(255,255,255,0.06)] pb-3">
+        <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-[rgba(255,215,0,0.15)] text-[#FFD700] flex items-center justify-center font-bold">
                 <Zap className="w-4 h-4" />
@@ -435,20 +448,20 @@ export default function WeeklyCalendar({
             {onDemandStories.map(story => (
               <div
                 key={story.id}
-                className="bg-[#141414] border border-[rgba(255,255,255,0.08)] hover:border-[#FFD700]/40 rounded-2xl p-3 flex items-center justify-between gap-3 transition-colors"
+                className="bg-[#141414] border border-white/[0.08] hover:border-[#FFD700]/40 rounded-2xl p-3 flex items-center justify-between gap-3 transition-colors duration-200"
               >
                 <div
-                  className="w-12 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 cursor-pointer border border-[rgba(255,255,255,0.1)] group relative"
+                  className="w-12 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 cursor-pointer border border-white/[0.1] group relative shadow-sm"
                   onClick={() => onPreviewStory(story)}
                   title="Ver y publicar"
                 >
                   <img
                     src={story.mediaUrl ? story.mediaUrl.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg') : ''}
                     alt={story.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                   {story.mediaType === 'video' && (
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
                       <Film className="w-4 h-4 text-[#FFD700] drop-shadow" />
                     </div>
                   )}

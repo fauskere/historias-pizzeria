@@ -15,7 +15,6 @@ import {
   deleteStory, 
   initFirebase, 
   fetchMetaSettings,
-  addPublicationLog,
   getFolders,
   saveFolder,
   deleteFolder,
@@ -240,7 +239,7 @@ export default function App() {
       </main>
 
       {/* Footer Oficial */}
-      <footer className="border-t border-[rgba(255,255,255,0.06)] bg-[#121212] py-6 text-center text-xs text-[#888888]">
+      <footer className="border-t border-white/[0.06] bg-[#121212] py-6 text-center text-xs text-[#888888]">
         <p>Programador de Contenido • Pizzería María Belén • Automatización oficial con Meta Graph API</p>
       </footer>
 

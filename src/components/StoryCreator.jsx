@@ -2,11 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Upload, 
   Film, 
-  Image as ImageIcon, 
   Check, 
   Sparkles, 
   AlertCircle,
-  Pizza,
   Repeat,
   Pencil,
   X,
@@ -15,6 +13,8 @@ import {
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
 import { uploadStoryMedia } from '../services/firebase';
+import { getFolderMediaInfo } from '../utils/folderMedia';
+import StoryPhoneMockup from './StoryPhoneMockup';
 
 const DAYS = [
   { key: 'lunes', label: 'Lunes', short: 'L' },
@@ -32,35 +32,6 @@ const CATEGORIES = [
   { key: 'hours', label: 'Horarios', color: '#00E096', desc: 'Apertura, cierre, días festivos' },
   { key: 'news', label: 'Novedades', color: '#c084fc', desc: 'Lanzamientos, eventos especiales' }
 ];
-
-export function getFolderMediaInfo(folder) {
-  if (!folder) return { count: 0, packsCount: 0, previewUrl: '', mediaType: 'image', hasMedia: false, isSingle: true };
-  const packs = Array.isArray(folder.packs) ? folder.packs : [];
-  const items = Array.isArray(folder.items) ? folder.items : [];
-  const isSingle = folder.mode === 'single' || (packs.length === 0 && items.length > 0);
-
-  if (!isSingle && packs.length > 0) {
-    const totalImgs = packs.reduce((acc, p) => acc + (p.images?.length || 0), 0);
-    const firstImg = packs.find(p => p.images?.length > 0)?.images[0];
-    return {
-      count: totalImgs,
-      packsCount: packs.length,
-      previewUrl: firstImg?.url || '',
-      mediaType: firstImg?.mediaType || 'image',
-      hasMedia: totalImgs > 0,
-      isSingle: false
-    };
-  }
-
-  return {
-    count: items.length,
-    packsCount: items.length,
-    previewUrl: items[0]?.url || '',
-    mediaType: items[0]?.mediaType || 'image',
-    hasMedia: items.length > 0,
-    isSingle: true
-  };
-}
 
 export default function StoryCreator({ 
   onStoryCreated, 
@@ -275,7 +246,7 @@ export default function StoryCreator({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       {/* Columna Izquierda: Formulario (7 cols) */}
-      <div className="lg:col-span-7 bg-[#1E1E1E] border border-[rgba(255,255,255,0.08)] rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+      <div className="lg:col-span-7 bg-[#1E1E1E] border border-white/[0.08] rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -329,7 +300,7 @@ export default function StoryCreator({
             <label className="block text-xs font-bold text-white uppercase tracking-wider mb-2">
               Modo de Contenido
             </label>
-            <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[#121212] border border-[rgba(255,255,255,0.08)]">
+            <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[#121212] border border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => setSourceType('single')}
@@ -369,7 +340,7 @@ export default function StoryCreator({
                 1. Seleccionar Carpeta de Productos
               </label>
               {folders.length === 0 ? (
-                <div className="p-5 rounded-2xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-center space-y-2">
+                <div className="p-5 rounded-2xl bg-[#121212] border border-white/[0.08] text-center space-y-2">
                   <Folder className="w-8 h-8 text-[#FFD700] mx-auto opacity-70" />
                   <p className="text-xs font-bold text-white">No tenés carpetas creadas todavía</p>
                   <p className="text-[11px] text-[#AAAAAA]">
@@ -392,7 +363,7 @@ export default function StoryCreator({
                           className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 ${
                             isSel 
                               ? 'bg-[rgba(255,215,0,0.12)] border-[#FFD700] text-white shadow-md'
-                              : 'bg-[#121212] border-[rgba(255,255,255,0.08)] text-[#AAAAAA] hover:border-[#FFD700]/30 hover:text-white'
+                              : 'bg-[#121212] border-white/[0.08] text-[#AAAAAA] hover:border-[#FFD700]/30 hover:text-white'
                           }`}
                         >
                           <div className="w-10 h-10 rounded-xl bg-black/40 overflow-hidden flex items-center justify-center shrink-0">
@@ -446,7 +417,7 @@ export default function StoryCreator({
                 className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
                   mediaPreview
                     ? 'border-[#FFD700]/50 bg-[#FFD700]/5 hover:bg-[#FFD700]/10'
-                    : 'border-[rgba(255,255,255,0.1)] hover:border-[#FFD700]/40 bg-[#121212] hover:bg-[#181818]'
+                    : 'border-white/10 hover:border-[#FFD700]/40 bg-[#121212] hover:bg-[#181818]'
                 }`}
               >
                 <input
@@ -459,7 +430,7 @@ export default function StoryCreator({
 
                 {mediaPreview ? (
                   <div className="flex items-center justify-center gap-5">
-                    <div className="w-16 h-28 rounded-xl overflow-hidden bg-black border border-[rgba(255,255,255,0.15)] flex-shrink-0 shadow-lg">
+                    <div className="w-16 h-28 rounded-xl overflow-hidden bg-black border border-white/15 flex-shrink-0 shadow-lg">
                       {mediaType === 'video' ? (
                         <div className="w-full h-full flex items-center justify-center text-[#FFD700] bg-[#121212]">
                           <Film className="w-7 h-7" />
@@ -483,7 +454,7 @@ export default function StoryCreator({
                   </div>
                 ) : (
                   <div className="space-y-2 py-4">
-                    <div className="w-12 h-12 mx-auto rounded-2xl bg-[#1E1E1E] border border-[rgba(255,255,255,0.08)] flex items-center justify-center text-[#FFD700]">
+                    <div className="w-12 h-12 mx-auto rounded-2xl bg-[#1E1E1E] border border-white/[0.08] flex items-center justify-center text-[#FFD700]">
                       <Upload className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-bold text-white">
@@ -508,7 +479,7 @@ export default function StoryCreator({
               placeholder="Ej: Promo 2x1 Muzza, Carta de Precios, Horarios Finde"
               value={title}
               onChange={e => setTitle(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.1)] text-white placeholder-[#666666] focus:outline-none focus:border-[#FFD700] text-sm font-medium transition-colors"
+              className="w-full px-4 py-3 rounded-xl bg-[#121212] border border-white/10 text-white placeholder-[#666666] focus:outline-none focus:border-[#FFD700] text-sm font-medium transition-colors"
             />
           </div>
 
@@ -528,7 +499,7 @@ export default function StoryCreator({
                     className={`p-3 rounded-xl border text-left transition-all ${
                       isSelected
                         ? 'border-[#FFD700] bg-[rgba(255,215,0,0.1)] shadow-sm'
-                        : 'border-[rgba(255,255,255,0.08)] bg-[#121212] hover:border-[rgba(255,255,255,0.2)]'
+                        : 'border-white/[0.08] bg-[#121212] hover:border-white/20'
                     }`}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
@@ -580,7 +551,7 @@ export default function StoryCreator({
                     className={`py-3 rounded-xl text-center text-xs font-extrabold transition-all ${
                       isSelected
                         ? 'bg-[#FFD700] text-black shadow-md shadow-[rgba(255,215,0,0.2)]'
-                        : 'bg-[#121212] text-[#AAAAAA] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.2)] hover:text-white'
+                        : 'bg-[#121212] text-[#AAAAAA] border border-white/[0.08] hover:border-white/20 hover:text-white'
                     }`}
                   >
                     <div>{day.short}</div>
@@ -610,7 +581,7 @@ export default function StoryCreator({
                 type="time"
                 value={time}
                 onChange={e => setTime(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.1)] text-white focus:outline-none focus:border-[#FFD700] text-sm font-bold tracking-wider"
+                className="w-full px-4 py-3 rounded-xl bg-[#121212] border border-white/10 text-white focus:outline-none focus:border-[#FFD700] text-sm font-bold tracking-wider"
               />
             </div>
 
@@ -620,7 +591,7 @@ export default function StoryCreator({
               </label>
               <div
                 onClick={() => setRepeatWeekly(!repeatWeekly)}
-                className="flex items-center justify-between p-3 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.1)] cursor-pointer hover:border-[rgba(255,255,255,0.2)] transition-colors h-[46px]"
+                className="flex items-center justify-between p-3 rounded-xl bg-[#121212] border border-white/10 cursor-pointer hover:border-white/20 transition-colors h-[46px]"
               >
                 <div className="flex items-center gap-2">
                   <Repeat className="w-4 h-4 text-[#FFD700]" />
@@ -651,7 +622,7 @@ export default function StoryCreator({
                 className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                   platforms.instagram
                     ? 'bg-[#121212] border-[#FFD700] text-white shadow-sm'
-                    : 'bg-[#121212] border-[rgba(255,255,255,0.08)] text-[#666666]'
+                    : 'bg-[#121212] border-white/[0.08] text-[#666666]'
                 }`}
               >
                 <input
@@ -668,7 +639,7 @@ export default function StoryCreator({
                 className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                   platforms.facebook
                     ? 'bg-[#121212] border-[#FFD700] text-white shadow-sm'
-                    : 'bg-[#121212] border-[rgba(255,255,255,0.08)] text-[#666666]'
+                    : 'bg-[#121212] border-white/[0.08] text-[#666666]'
                 }`}
               >
                 <input
@@ -722,88 +693,14 @@ export default function StoryCreator({
         </form>
       </div>
 
-      {/* Columna Derecha: Smartphone Preview (5 cols) */}
-      <div className="lg:col-span-5 flex flex-col items-center">
-        <div className="w-full max-w-[320px]">
-          <div className="text-center mb-3">
-            <span className="text-[11px] font-bold text-[#AAAAAA] uppercase tracking-wider">
-              Vista previa en tiempo real
-            </span>
-          </div>
-
-          {/* Smartphone Frame (9:16 Aspect Ratio) */}
-          <div className="relative aspect-[9/16] w-full rounded-[42px] border-[7px] border-[#2C2C2C] bg-black overflow-hidden shadow-2xl ring-1 ring-[rgba(255,255,255,0.1)]">
-            {/* Top Speaker Notch */}
-            <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-4 bg-[#1E1E1E] rounded-full z-30" />
-
-            {/* Media Content */}
-            {mediaPreview ? (
-              mediaType === 'video' ? (
-                <video
-                  src={mediaPreview}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <img src={mediaPreview} alt="Story" className="w-full h-full object-cover" />
-              )
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-[#181818] via-[#121212] to-[#181818] text-[#666666]">
-                <ImageIcon className="w-12 h-12 mb-3 text-[#444444]" />
-                <p className="text-xs font-semibold text-[#888888]">
-                  Cargá una foto o video para ver cómo se verá en la historia de Instagram y Facebook
-                </p>
-              </div>
-            )}
-
-            {/* Story UI Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/80 pointer-events-none flex flex-col justify-between p-4 z-20">
-              {/* Top Progress bar & Header */}
-              <div className="pt-4 space-y-2.5">
-                {/* Progress bar */}
-                <div className="h-1 bg-white/30 rounded-full overflow-hidden">
-                  <div className="w-1/2 h-full bg-[#FFD700] rounded-full animate-pulse" />
-                </div>
-
-                {/* Profile header */}
-                <div className="flex items-center justify-between text-white">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FFD700] to-[#E6C200] flex items-center justify-center p-1 border border-white/80 shadow-md">
-                      <Pizza className="w-4 h-4 text-black" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-extrabold leading-tight drop-shadow">{restaurantName}</p>
-                      <p className="text-[10px] text-white/80">{time} hs • Programador</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Caption Pill */}
-              <div className="pb-4 space-y-2">
-                {title && (
-                  <div className="bg-black/70 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-white/10 text-white shadow-lg">
-                    <p className="text-xs font-semibold drop-shadow">{title}</p>
-                  </div>
-                )}
-                <div className="h-9 rounded-full border border-white/30 bg-white/10 backdrop-blur-md px-4 flex items-center justify-between text-white/70 text-xs font-medium">
-                  <span>Enviar mensaje...</span>
-                  <span>❤️</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 text-center">
-            <p className="text-[11px] text-[#888888]">
-              Simulación de visualización de tus clientes en redes sociales.
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Columna Derecha: Smartphone Preview Modular */}
+      <StoryPhoneMockup
+        mediaPreview={mediaPreview}
+        mediaType={mediaType}
+        restaurantName={restaurantName}
+        time={time}
+        title={title}
+      />
     </div>
   );
 }

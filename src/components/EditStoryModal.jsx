@@ -2,15 +2,15 @@ import React, { useState, useRef } from 'react';
 import { 
   X, 
   Upload, 
-  Film,
+  Film, 
   Check, 
   AlertCircle, 
-  Pencil,
-  RefreshCw,
-  Folder
+  Pencil, 
+  RefreshCw, 
+  Folder 
 } from 'lucide-react';
 import { uploadStoryMedia } from '../services/firebase';
-import { getFolderMediaInfo } from './StoryCreator';
+import { getFolderMediaInfo } from '../utils/folderMedia';
 
 const DAYS = [
   { key: 'lunes', label: 'Lunes', short: 'L' },
@@ -172,8 +172,8 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div className="absolute inset-0" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-2xl bg-[#1E1E1E] border border-[rgba(255,255,255,0.08)] rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-4 border-b border-[rgba(255,255,255,0.06)] mb-6">
+      <div className="relative z-10 w-full max-w-2xl bg-[#1E1E1E] border border-white/[0.08] rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-4 border-b border-white/[0.06] mb-6">
           <div className="flex items-center gap-2.5">
             <span className="p-2 rounded-xl bg-[rgba(255,215,0,0.15)] text-[#FFD700]">
               <Pencil className="w-5 h-5" />
@@ -213,7 +213,7 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
             <label className="block text-xs font-bold text-white uppercase tracking-wider mb-2">
               Modo de Contenido
             </label>
-            <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[#121212] border border-[rgba(255,255,255,0.08)]">
+            <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[#121212] border border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => setSourceType('single')}
@@ -265,7 +265,7 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
                         className={`p-3 rounded-xl border cursor-pointer flex items-center gap-2.5 transition-all ${
                           isSel
                             ? 'bg-[rgba(255,215,0,0.12)] border-[#FFD700] text-white shadow-md'
-                            : 'bg-[#121212] border-[rgba(255,255,255,0.08)] text-[#AAAAAA] hover:text-white'
+                            : 'bg-[#121212] border-white/[0.08] text-[#AAAAAA] hover:text-white'
                         }`}
                       >
                         <div className="w-8 h-8 rounded-lg bg-black/40 overflow-hidden flex items-center justify-center shrink-0">
@@ -316,7 +316,7 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
                   onChange={handleFileChange}
                   className="hidden"
                 />
-                <div className="w-16 h-28 rounded-xl overflow-hidden bg-black border border-[rgba(255,255,255,0.1)] flex-shrink-0 shadow-md">
+                <div className="w-16 h-28 rounded-xl overflow-hidden bg-black border border-white/10 flex-shrink-0 shadow-md">
                   {mediaType === 'video' ? (
                     <div className="w-full h-full flex flex-col items-center justify-center text-[#FFD700] bg-[#181818] text-[9px] font-bold">
                       <Film className="w-6 h-6 mb-1" />
@@ -348,7 +348,7 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
               type="text"
               value={title}
               onChange={e => setTitle(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-white text-sm font-semibold focus:outline-none focus:border-[#FFD700]"
+              className="w-full px-4 py-3 rounded-xl bg-[#121212] border border-white/[0.08] text-white text-sm font-semibold focus:outline-none focus:border-[#FFD700]"
             />
           </div>
 
@@ -366,7 +366,7 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
                     className={`py-2 rounded-xl text-xs font-black transition-all ${
                       isSelected
                         ? 'bg-[#FFD700] text-black shadow-md shadow-[rgba(255,215,0,0.2)]'
-                        : 'bg-[#121212] text-[#888888] border border-[rgba(255,255,255,0.06)] hover:text-white'
+                        : 'bg-[#121212] text-[#888888] border border-white/[0.06] hover:text-white'
                     }`}
                   >
                     {d.short}
@@ -384,14 +384,14 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
                 type="time"
                 value={time}
                 onChange={e => setTime(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-white text-sm font-bold focus:outline-none focus:border-[#FFD700]"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#121212] border border-white/[0.08] text-white text-sm font-bold focus:outline-none focus:border-[#FFD700]"
               />
             </div>
             <div>
               <label className="block text-xs font-bold text-white mb-1.5">Repetición</label>
               <div
                 onClick={() => setRepeatWeekly(!repeatWeekly)}
-                className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.08)] cursor-pointer h-[42px]"
+                className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#121212] border border-white/[0.08] cursor-pointer h-[42px]"
               >
                 <span className="text-xs font-bold text-white">Todas las semanas</span>
                 <div className={`w-9 h-5 rounded-full relative flex items-center px-0.5 ${repeatWeekly ? 'bg-[#FFD700]' : 'bg-[#2C2C2C]'}`}>
@@ -402,7 +402,7 @@ export default function EditStoryModal({ story, onClose, onSave, folders = [], c
           </div>
 
           {/* Botones de acción */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/[0.06]">
             <button
               type="button"
               onClick={onClose}

@@ -90,7 +90,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="bg-[#1E1E1E] p-6 sm:p-8 rounded-3xl border border-[rgba(255,255,255,0.08)] shadow-xl">
+      <div className="bg-[#1E1E1E] p-6 sm:p-8 rounded-3xl border border-white/[0.08] shadow-xl">
         <div className="flex items-center gap-2.5">
           <span className="p-2 rounded-xl bg-[rgba(255,215,0,0.15)] text-[#FFD700]">
             <Settings className="w-5 h-5" />
@@ -105,8 +105,8 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
       </div>
 
       {/* 1. SECCIÓN META GRAPH API */}
-      <div className="bg-[#1E1E1E] border border-[rgba(255,255,255,0.08)] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[rgba(255,255,255,0.06)] pb-4">
+      <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[rgba(255,215,0,0.15)] flex items-center justify-center text-[#FFD700]">
               <Key className="w-5 h-5" />
@@ -130,7 +130,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
         </div>
 
         {showGuide && (
-          <div className="p-5 rounded-2xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-xs text-[#CCCCCC] space-y-4">
+          <div className="p-5 rounded-2xl bg-[#121212] border border-white/[0.08] text-xs text-[#CCCCCC] space-y-4">
             <div>
               <p className="font-bold text-[#FFD700] text-sm mb-1">
                 ⭐ Método Recomendado: Token Permanente (NUNCA VENCE)
@@ -159,7 +159,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
               </ol>
             </div>
 
-            <div className="pt-2 border-t border-[rgba(255,255,255,0.06)]">
+            <div className="pt-2 border-t border-white/[0.06]">
               <p className="font-bold text-white mb-1">
                 Alternativa rápida vía Graph API Explorer:
               </p>
@@ -180,7 +180,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
               value={metaSettings.restaurantName || ''}
               onChange={e => setMetaState({ ...metaSettings, restaurantName: e.target.value })}
               placeholder="Ej: Pizzería María Belén"
-              className="w-full px-4 py-2.5 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-sm text-white focus:outline-none focus:border-[#FFD700] font-semibold"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#121212] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-[#FFD700] font-semibold transition-colors"
             />
           </div>
 
@@ -194,7 +194,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
                 value={metaSettings.pageAccessToken || ''}
                 onChange={e => setMetaState({ ...metaSettings, pageAccessToken: e.target.value })}
                 placeholder="EAA..."
-                className="w-full pr-12 pl-4 py-2.5 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-sm text-white focus:outline-none focus:border-[#FFD700] font-mono text-xs"
+                className="w-full pr-12 pl-4 py-2.5 rounded-xl bg-[#121212] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-[#FFD700] font-mono text-xs transition-colors"
               />
               <button
                 type="button"
@@ -219,7 +219,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
                 value={metaSettings.facebookPageId || ''}
                 onChange={e => setMetaState({ ...metaSettings, facebookPageId: e.target.value })}
                 placeholder="Ej: 142155929161231"
-                className="w-full px-4 py-2.5 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-sm text-white focus:outline-none focus:border-[#FFD700] font-mono"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#121212] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-[#FFD700] font-mono transition-colors"
               />
             </div>
 
@@ -232,7 +232,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
                 value={metaSettings.instagramAccountId || ''}
                 onChange={e => setMetaState({ ...metaSettings, instagramAccountId: e.target.value })}
                 placeholder="Ej: 17841479715583130"
-                className="w-full px-4 py-2.5 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-sm text-white focus:outline-none focus:border-[#FFD700] font-mono"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#121212] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-[#FFD700] font-mono transition-colors"
               />
             </div>
           </div>
@@ -289,7 +289,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
             type="button"
             onClick={handleTestMeta}
             disabled={metaTesting || !metaSettings.pageAccessToken}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#121212] hover:bg-[#2C2C2C] text-white border border-[rgba(255,255,255,0.08)] font-bold text-xs disabled:opacity-40 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#121212] hover:bg-[#2C2C2C] text-white border border-white/[0.08] font-bold text-xs disabled:opacity-40 transition-colors"
           >
             {metaTesting ? (
               <>
@@ -316,8 +316,8 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
       </div>
 
       {/* 2. SECCIÓN FIREBASE CLOUD */}
-      <div className="bg-[#1E1E1E] border border-[rgba(255,255,255,0.08)] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
-        <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.06)] pb-4">
+      <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[rgba(255,215,0,0.15)] flex items-center justify-center text-[#FFD700]">
               <Cloud className="w-5 h-5" />
@@ -347,7 +347,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
                 type="text"
                 value={fbConfig.apiKey || ''}
                 onChange={e => setFbConfig({ ...fbConfig, apiKey: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-xs text-white focus:outline-none focus:border-[#FFD700] font-mono"
+                className="w-full px-4 py-2 rounded-xl bg-[#121212] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-[#FFD700] font-mono transition-colors"
               />
             </div>
 
@@ -357,7 +357,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
                 type="text"
                 value={fbConfig.projectId || ''}
                 onChange={e => setFbConfig({ ...fbConfig, projectId: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl bg-[#121212] border border-[rgba(255,255,255,0.08)] text-xs text-white focus:outline-none focus:border-[#FFD700] font-mono"
+                className="w-full px-4 py-2 rounded-xl bg-[#121212] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-[#FFD700] font-mono transition-colors"
               />
             </div>
           </div>
@@ -365,7 +365,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
           <div className="flex justify-end pt-2">
             <button
               type="submit"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#121212] hover:bg-[#2C2C2C] text-white border border-[rgba(255,255,255,0.08)] font-bold text-xs transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#121212] hover:bg-[#2C2C2C] text-white border border-white/[0.08] font-bold text-xs transition-all"
             >
               {fbSaved ? <Check className="w-4 h-4 text-[#00E096]" /> : <Save className="w-4 h-4 text-[#FFD700]" />}
               <span>{fbSaved ? '¡Sincronizado!' : 'Guardar Configuración Firebase'}</span>
@@ -374,9 +374,9 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
         </form>
       </div>
 
-      {/* VERSION DEL PROGRAMA */}
+      {/* VERSION DEL PROGRAMA - REGLA 4 */}
       <div className="text-center pt-2 pb-4 text-[11px] text-[#777777] font-mono select-none">
-        Programador de Contenido <span className="text-[#AAAAAA] font-bold">v1.4.0</span>
+        Programador de Contenido <span className="text-[#AAAAAA] font-bold">v1.5.0</span>
       </div>
     </div>
   );
