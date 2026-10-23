@@ -3,7 +3,7 @@
 ## 📌 Identificación del Proyecto
 * **Nombre:** Programador de Contenido (PizzaStory Studio)
 * **Repositorio:** `git@github.com:fauskere/historias-pizzeria.git`
-* **Versión:** `v1.5.7`
+* **Versión:** `v1.5.8`
 * **Rama Activa:** `main`
 * **Hosting en Producción:** `https://programador-de-contenido.web.app`
 
@@ -12,7 +12,7 @@
 ## 🛠️ Stack Tecnológico y Arquitectura
 * **Frontend:** React 19, Vite 8, Tailwind CSS 4, Lucide Icons.
 * **Hosting & Base de Datos:** Firebase Hosting & Firestore (Plan Spark 100% Gratuito, sin costo ni tarjeta de crédito).
-* **Robot Autónomo en la Nube:** GitHub Actions (`node scripts/cloud-scheduler.js`) con cron activo únicamente de Miércoles a Domingo (Lunes y Martes 100% apagado): 13:30 a 19:00 cada 30m, 19:00 a 20:30 cada 15m (hora pico), y 20:30 a 22:00 cada 30m. Consumo de solo **~450 minutos al mes** (apenas el 22,5% de los 2.000 minutos gratis).
+* **Robot Autónomo en la Nube:** GitHub Actions (`node scripts/cloud-scheduler.js`) activo los 7 días de la semana en horario comercial (13:30 a 22:00 hs con pico de 15m entre 19:00 y 20:30 hs). Consumo de solo **~630 minutos al mes** (apenas el 31,5% de los 2.000 minutos gratis).
 * **Almacenamiento Multimedia:** Cloudinary / Firebase Storage.
 * **Integración Redes Sociales:** Meta Graph API v21.0 con soporte nativo completo para fotos y videos en Instagram y Facebook Page Stories.
 * **Modularización por Dominio:** 100% de los archivos con menos de 800 líneas de código (Regla 2).
@@ -25,13 +25,18 @@
 3. **Gestión de Carpetas & Packs de Contenido (`FolderManager.jsx`, `FolderDetailView.jsx`, `FolderLaunchModal.jsx`):** Modos duales de publicación (inmediato vs programado), orden secuencial garantizado.
 4. **Editor y Creador de Historias (`StoryCreator.jsx`, `StoryPhoneMockup.jsx`, `EditStoryModal.jsx`):** Modularizado con simulación 9:16 en vivo.
 5. **Utilidades Compartidas (`src/utils/folderMedia.js`):** Extracción lógica reutilizable para carpetas y packs.
-6. **Robot de Publicación con Apagado Lunes y Martes (`scripts/cloud-scheduler.js` & `.github/workflows/auto-publisher.yml`):** Solo activo Miércoles a Domingo con 21 ejecuciones por día laborable (~450 min/mes).
+6. **Robot de Publicación Activo Todos los Días (`scripts/cloud-scheduler.js` & `.github/workflows/auto-publisher.yml`):** Cobertura de Lunes a Domingo de 13:30 a 22:00 hs con consumo mensual de 630 min (te sobran 1.370 min cada mes).
 7. **Registro de Publicaciones (`PublicationLogs.jsx`).**
-8. **Configuración y Verificación (`SettingsPanel.jsx`):** Versión `v1.5.7` visible al pie (Regla 4).
+8. **Configuración y Verificación (`SettingsPanel.jsx`):** Versión `v1.5.8` visible al pie (Regla 4).
 
 ---
 
 ## 📝 Registro de Sesiones y Cambios
+* **2026-10-22 (v1.5.8 - Activación Total Lunes a Domingo en Horario Comercial):**
+  * Se configuró el cron para correr todos los días de la semana (Lunes a Domingo) de 13:30 a 22:00 hs (21 ejecuciones por día).
+  * Consumo mensual de 630 minutos sobre 2.000 disponibles (sobran 1.370 min/mes).
+  * Saldo para terminar octubre: 9 días x 21 min = 189 min (entra dentro de los 200 min disponibles).
+  * Si un lunes o martes no se abren historias, el bot se apaga en segundos; si se abren historias especiales o feriados, se publican automáticamente sin intervención manual.
 * **2026-10-22 (v1.5.7 - Apagado Total Lunes y Martes & Balance de Minutos Octubre):**
   * Desactivación completa de GitHub Actions los días Lunes y Martes.
   * Días restantes en octubre (23 al 31): exactamente 7 días activos x 21 ejecuciones = **147 minutos de consumo** frente a los 200 minutos restantes disponibles. Se garantiza que la cuota no se agotará antes de la renovación del 01/11.

@@ -2,22 +2,22 @@ name: Auto-Publicador Historias Pizzería
 
 on:
   schedule:
-    # MIÉRCOLES A DOMINGO (Lunes y Martes 100% apagado)
+    # ACTIVO TODOS LOS DÍAS (Lunes a Domingo con horario comercial optimizado)
     
-    # 1) TARDE: 13:30 a 18:30 hs Argentina (cada 30 min) -> 16:30 a 21:30 UTC (Miércoles a Domingo: WED-SUN)
-    - cron: '30 16 * * WED-SUN'
-    - cron: '0,30 17-21 * * WED-SUN'
+    # 1) TARDE: 13:30 a 18:30 hs Argentina (cada 30 min) -> 16:30 a 21:30 UTC
+    - cron: '30 16 * * *'
+    - cron: '0,30 17-21 * * *'
 
-    # 2) HORA PICO: 19:00 a 20:30 hs Argentina (cada 15 min) -> 22:00 a 23:30 UTC (Miércoles a Domingo: WED-SUN)
-    - cron: '0,15,30,45 22 * * WED-SUN'
-    - cron: '0,15,30 23 * * WED-SUN'
+    # 2) HORA PICO: 19:00 a 20:30 hs Argentina (cada 15 min) -> 22:00 a 23:30 UTC
+    - cron: '0,15,30,45 22 * * *'
+    - cron: '0,15,30 23 * * *'
 
-    # 3) NOCHE: 20:30 a 22:00 hs Argentina (cada 30 min) -> 00:00 a 01:00 UTC (Jueves a Lunes en UTC: THU-MON)
-    - cron: '0,30 0 * * THU-MON'
-    - cron: '0 1 * * THU-MON'
+    # 3) NOCHE: 20:30 a 22:00 hs Argentina (cada 30 min) -> 00:00 a 01:00 UTC (día siguiente)
+    - cron: '0,30 0 * * *'
+    - cron: '0 1 * * *'
 
-    # Consumo: 21 ejecuciones por día activo x 5 días a la semana = ~105 ejecuciones semanales (~450 min/mes).
-    # Lunes y Martes apagado las 24 hs.
+    # Rendimiento: 21 ejecuciones diarias x 30 días = 630 min/mes (apenas el 31,5% de los 2.000 min gratis de GitHub).
+    # De 22:00 a 13:30 hs está 100% apagado para no gastar minutos de madrugada.
 
   workflow_dispatch: # Permite probar o ejecutar manualmente desde GitHub con un botón si hiciera falta
 
