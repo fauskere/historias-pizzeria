@@ -376,7 +376,7 @@ export default function SettingsPanel({ onFirebaseUpdated, isFirebaseConnected }
 
       {/* VERSION DEL PROGRAMA - REGLA 4 */}
       <div className="text-center pt-2 pb-4 text-[11px] text-[#777777] font-mono select-none">
-        Programador de Contenido <span className="text-[#AAAAAA] font-bold">v1.5.6</span>
+        Programador de Contenido <span className="text-[#AAAAAA] font-bold">v1.5.7</span>
       </div>
     </div>
   );
