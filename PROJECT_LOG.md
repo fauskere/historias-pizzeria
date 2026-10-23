@@ -3,7 +3,7 @@
 ## 📌 Identificación del Proyecto
 * **Nombre:** Programador de Contenido (PizzaStory Studio)
 * **Repositorio:** `git@github.com:fauskere/historias-pizzeria.git`
-* **Versión:** `v1.5.2`
+* **Versión:** `v1.5.3`
 * **Rama Activa:** `main`
 * **Hosting en Producción:** `https://programador-de-contenido.web.app`
 
@@ -20,19 +20,21 @@
 
 ## 🚀 Módulos y Funcionalidades
 1. **Navbar de Precisión (`Navbar.jsx`):** Marca sobria y limpia solo con el isotipo de Pizza y título "Programador de Contenido", indicador de estado Cloud/Local en tiempo real.
-2. **Calendario Semanal Interactivo (`WeeklyCalendar.jsx`):** Selector desplegable de categorías ultracompacto con icono de filtro y chevron, programación semanal por días y horarios, acento visual superior en el día activo, badges monospace.
+2. **Calendario Semanal Interactivo (`WeeklyCalendar.jsx`):** Vista colapsable por día (máx 2 historias visibles por defecto, botón `+N historias más` con `ChevronDown`/`ChevronUp`), selector desplegable de categorías, acento visual superior en día activo, badges monospace.
 3. **Gestión de Carpetas & Packs de Contenido (`FolderManager.jsx`, `FolderDetailView.jsx`, `FolderLaunchModal.jsx`):** Modos duales de publicación (inmediato vs programado), orden secuencial garantizado.
 4. **Editor y Creador de Historias (`StoryCreator.jsx`, `StoryPhoneMockup.jsx`, `EditStoryModal.jsx`):** Modularizado con simulación 9:16 en vivo.
 5. **Utilidades Compartidas (`src/utils/folderMedia.js`):** Extracción lógica reutilizable para carpetas y packs.
 6. **Registro de Publicaciones (`PublicationLogs.jsx`).**
-7. **Configuración y Verificación (`SettingsPanel.jsx`):** Versión `v1.5.2` visible al pie (Regla 4).
+7. **Configuración y Verificación (`SettingsPanel.jsx`):** Versión `v1.5.3` visible al pie (Regla 4).
 
 ---
 
 ## 📝 Registro de Sesiones y Cambios
+* **2026-10-22 (v1.5.3 - Plegado Inteligente de Días & Desactivación de GitHub Actions):**
+  * **Consulta sobre Minutos de GitHub Actions:** Se identificó que existía un archivo residual `.github/workflows/auto-publisher.yml` con un cron cada 15 minutos de una versión preliminar previa a la migración a Cloud Functions. Se eliminó por completo para frenar el consumo de minutos de GitHub. La app corre 100% en Firebase sin depender de GitHub Actions.
+  * **Plegado de Historias por Día:** En `WeeklyCalendar.jsx`, se limitó la visualización inicial a 2 historias por día. Si hay más historias, se añade un botón colapsable interactivo (`+N historias más` / `Ver menos`) con flecha `ChevronDown`/`ChevronUp` individual por día, evitando que las columnas se estiren verticalmente.
 * **2026-10-22 (v1.5.2 - Selector Desplegable de Categorías en Calendario):**
-  * **Solicitud de Usuario:** Convertir el filtro de categorías del Calendario Semanal en un menú desplegable (select) para ahorrar espacio horizontal y mantener la vista limpia.
-  * **Ajuste:** Se sustituyó la fila de pills por un select desplegable compacto con icono `Filter` y `ChevronDown`, con estilos acordes al diseño Big Tech.
+  * Se sustituyó la fila de pills por un select desplegable compacto con icono `Filter` y `ChevronDown`.
 * **2026-10-22 (v1.5.1 - Simplificación de Navbar & Eliminación de Badge Redundante):**
   * Eliminar badge decorativo *"Pizzería María Belén"* que figuraba al lado de *"Programador de Contenido"*.
 * **2026-10-22 (v1.5.0 - Rediseño UI Big Tech & Modularización Estricta < 800 líneas):**

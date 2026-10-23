@@ -12,7 +12,8 @@ import {
   Folder as FolderIcon, 
   Send,
   Filter,
-  ChevronDown
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Instagram, Facebook } from './SocialIcons';
 import FolderLaunchModal from './FolderLaunchModal';
@@ -40,6 +41,14 @@ export default function WeeklyCalendar({
 }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedFolderToLaunch, setSelectedFolderToLaunch] = useState(null);
+  const [expandedDays, setExpandedDays] = useState({});
+
+  const toggleExpandDay = (dayKey) => {
+    setExpandedDays(prev => ({
+      ...prev,
+      [dayKey]: !prev[dayKey]
+    }));
+  };
 
   // Identificar el día actual en Argentina
   const daysMap = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
@@ -144,6 +153,9 @@ export default function WeeklyCalendar({
         {DAYS_OF_WEEK.map(day => {
           const dayStories = storiesByDay[day.key] || [];
           const isToday = day.key === todayKey;
+          const isExpanded = Boolean(expandedDays[day.key]);
+          const visibleStories = isExpanded ? dayStories : dayStories.slice(0, 2);
+          const hiddenCount = dayStories.length - 2;
 
           return (
             <div
@@ -189,138 +201,161 @@ export default function WeeklyCalendar({
                     </button>
                   </div>
                 ) : (
-                  dayStories.map(story => (
-                    <div
-                      key={`${day.key}-${story.id}`}
-                      className={`group relative rounded-2xl border p-2.5 transition-all duration-200 ${
-                        story.active
-                          ? 'bg-[#141414] border-white/[0.08] hover:border-[#FFD700]/50 shadow-sm'
-                          : 'bg-[#121212] border-white/[0.04] opacity-50 hover:opacity-100'
-                      }`}
-                    >
-                      {/* Thumbnail & Badges */}
-                      <div className="flex gap-2.5 items-start">
-                        {/* 9:16 Mini Preview */}
-                        <div 
-                          className="relative w-12 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 cursor-pointer border border-white/[0.1] group/thumb shadow-sm"
-                          onClick={() => onPreviewStory(story)}
-                          title="Clic para ver vista previa completa"
-                        >
-                          <img
-                            src={story.mediaUrl ? story.mediaUrl.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg') : ''}
-                            alt={story.title}
-                            className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300"
-                          />
-                          {story.mediaType === 'video' && (
-                            <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
-                              <Film className="w-4 h-4 text-[#FFD700] drop-shadow" />
-                            </div>
-                          )}
-                          {story.sourceType === 'folder' && (
-                            <div className="absolute top-1 left-1 z-10 w-4 h-4 rounded-md bg-black/80 border border-[#FFD700]/40 flex items-center justify-center text-[9px]" title="Rotación desde carpeta">
-                              📁
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/0 transition-colors" />
-                        </div>
-
-                        {/* Info Column */}
-                        <div className="flex-1 min-w-0">
-                          {/* Time & Active Pill */}
-                          <div className="flex items-center justify-between gap-1 mb-1">
-                            <span className="inline-flex items-center gap-1 font-mono text-[11px] font-extrabold text-[#FFD700] bg-[rgba(255,215,0,0.12)] px-1.5 py-0.5 rounded-lg border border-[rgba(255,215,0,0.2)]">
-                              <Clock className="w-3 h-3" />
-                              {story.time} hs
-                            </span>
-
-                            {/* Switch Rápido Activar / Pausar */}
-                            <button
-                              onClick={() => onToggleActive(story.id, !story.active)}
-                              className={`p-1 rounded-lg transition-colors duration-150 ${
-                                story.active
-                                  ? 'text-[#00E096] hover:bg-[#00E096]/20'
-                                  : 'text-[#666666] hover:bg-[#2C2C2C] hover:text-[#AAAAAA]'
-                              }`}
-                              title={story.active ? 'Pausar esta historia' : 'Activar esta historia'}
-                            >
-                              <Power className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-
-                          {/* Title */}
-                          <h4 className="text-xs font-bold text-white truncate leading-snug" title={story.title}>
-                            {story.title}
-                          </h4>
-
-                          {/* Category or Folder */}
-                          <div className="flex items-center gap-1.5 mt-1 text-[10px]">
-                            {story.sourceType === 'folder' || story.folderName ? (
-                              <span className="inline-flex items-center gap-1 font-bold text-[#FFD700] bg-[rgba(255,215,0,0.1)] px-1.5 py-0.5 rounded border border-[rgba(255,215,0,0.2)] truncate">
-                                📁 {story.folderName || 'Carpeta'} (Rotativo)
-                              </span>
-                            ) : (
-                              <div className="flex items-center gap-1 text-[#AAAAAA]">
-                                <span 
-                                  className="w-2 h-2 rounded-full" 
-                                  style={{ backgroundColor: story.color || '#FFD700' }} 
-                                />
-                                <span className="truncate">{story.categoryLabel || 'Historia'}</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Platforms Icons */}
-                          <div className="flex items-center gap-2 mt-2 text-[#888888]">
-                            {story.platforms?.instagram && (
-                              <div className="text-[#FFD700] hover:text-[#E1306C] transition-colors" title="Instagram Stories">
-                                <Instagram className="w-3 h-3" />
-                              </div>
-                            )}
-                            {story.platforms?.facebook && (
-                              <div className="text-[#FFD700] hover:text-[#1877F2] transition-colors" title="Facebook Page Stories">
-                                <Facebook className="w-3 h-3" />
-                              </div>
-                            )}
-                            {story.repeatWeekly && (
-                              <span className="text-[9px] text-[#888888] ml-auto font-bold" title="Se repite cada semana">
-                                ↻ Semanal
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Card Footer Actions */}
-                      <div className="mt-2.5 pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
-                        <button
-                          onClick={() => onPreviewStory(story)}
-                          className="text-[#AAAAAA] hover:text-white flex items-center gap-1 font-semibold transition-colors duration-150"
-                        >
-                          <Eye className="w-3 h-3" />
-                          Ver
-                        </button>
-
-                        {onEditStory && (
-                          <button
-                            onClick={() => onEditStory(story)}
-                            className="text-[#FFD700] hover:text-[#E6C200] flex items-center gap-1 font-bold transition-colors duration-150"
-                            title="Editar imagen, días u horario de esta historia"
+                  <>
+                    {visibleStories.map(story => (
+                      <div
+                        key={`${day.key}-${story.id}`}
+                        className={`group relative rounded-2xl border p-2.5 transition-all duration-200 ${
+                          story.active
+                            ? 'bg-[#141414] border-white/[0.08] hover:border-[#FFD700]/50 shadow-sm'
+                            : 'bg-[#121212] border-white/[0.04] opacity-50 hover:opacity-100'
+                        }`}
+                      >
+                        {/* Thumbnail & Badges */}
+                        <div className="flex gap-2.5 items-start">
+                          {/* 9:16 Mini Preview */}
+                          <div 
+                            className="relative w-12 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 cursor-pointer border border-white/[0.1] group/thumb shadow-sm"
+                            onClick={() => onPreviewStory(story)}
+                            title="Clic para ver vista previa completa"
                           >
-                            <Pencil className="w-3 h-3" />
-                            Editar
-                          </button>
-                        )}
+                            <img
+                              src={story.mediaUrl ? story.mediaUrl.replace(/\.(mp4|mov|webm|mkv)$/i, '.jpg') : ''}
+                              alt={story.title}
+                              className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300"
+                            />
+                            {story.mediaType === 'video' && (
+                              <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
+                                <Film className="w-4 h-4 text-[#FFD700] drop-shadow" />
+                              </div>
+                            )}
+                            {story.sourceType === 'folder' && (
+                              <div className="absolute top-1 left-1 z-10 w-4 h-4 rounded-md bg-black/80 border border-[#FFD700]/40 flex items-center justify-center text-[9px]" title="Rotación desde carpeta">
+                                📁
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/0 transition-colors" />
+                          </div>
 
-                        <button
-                          onClick={() => onDeleteStory(story.id)}
-                          className="text-[#FF6B6B]/80 hover:text-[#FF3B30] flex items-center gap-1 transition-colors duration-150"
-                          title="Eliminar historia"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                          {/* Info Column */}
+                          <div className="flex-1 min-w-0">
+                            {/* Time & Active Pill */}
+                            <div className="flex items-center justify-between gap-1 mb-1">
+                              <span className="inline-flex items-center gap-1 font-mono text-[11px] font-extrabold text-[#FFD700] bg-[rgba(255,215,0,0.12)] px-1.5 py-0.5 rounded-lg border border-[rgba(255,215,0,0.2)]">
+                                <Clock className="w-3 h-3" />
+                                {story.time} hs
+                              </span>
+
+                              {/* Switch Rápido Activar / Pausar */}
+                              <button
+                                onClick={() => onToggleActive(story.id, !story.active)}
+                                className={`p-1 rounded-lg transition-colors duration-150 ${
+                                  story.active
+                                    ? 'text-[#00E096] hover:bg-[#00E096]/20'
+                                    : 'text-[#666666] hover:bg-[#2C2C2C] hover:text-[#AAAAAA]'
+                                }`}
+                                title={story.active ? 'Pausar esta historia' : 'Activar esta historia'}
+                              >
+                                <Power className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            {/* Title */}
+                            <h4 className="text-xs font-bold text-white truncate leading-snug" title={story.title}>
+                              {story.title}
+                            </h4>
+
+                            {/* Category or Folder */}
+                            <div className="flex items-center gap-1.5 mt-1 text-[10px]">
+                              {story.sourceType === 'folder' || story.folderName ? (
+                                <span className="inline-flex items-center gap-1 font-bold text-[#FFD700] bg-[rgba(255,215,0,0.1)] px-1.5 py-0.5 rounded border border-[rgba(255,215,0,0.2)] truncate">
+                                  📁 {story.folderName || 'Carpeta'} (Rotativo)
+                                </span>
+                              ) : (
+                                <div className="flex items-center gap-1 text-[#AAAAAA]">
+                                  <span 
+                                    className="w-2 h-2 rounded-full" 
+                                    style={{ backgroundColor: story.color || '#FFD700' }} 
+                                  />
+                                  <span className="truncate">{story.categoryLabel || 'Historia'}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Platforms Icons */}
+                            <div className="flex items-center gap-2 mt-2 text-[#888888]">
+                              {story.platforms?.instagram && (
+                                <div className="text-[#FFD700] hover:text-[#E1306C] transition-colors" title="Instagram Stories">
+                                  <Instagram className="w-3 h-3" />
+                                </div>
+                              )}
+                              {story.platforms?.facebook && (
+                                <div className="text-[#FFD700] hover:text-[#1877F2] transition-colors" title="Facebook Page Stories">
+                                  <Facebook className="w-3 h-3" />
+                                </div>
+                              )}
+                              {story.repeatWeekly && (
+                                <span className="text-[9px] text-[#888888] ml-auto font-bold" title="Se repite cada semana">
+                                  ↻ Semanal
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Card Footer Actions */}
+                        <div className="mt-2.5 pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
+                          <button
+                            onClick={() => onPreviewStory(story)}
+                            className="text-[#AAAAAA] hover:text-white flex items-center gap-1 font-semibold transition-colors duration-150"
+                          >
+                            <Eye className="w-3 h-3" />
+                            Ver
+                          </button>
+
+                          {onEditStory && (
+                            <button
+                              onClick={() => onEditStory(story)}
+                              className="text-[#FFD700] hover:text-[#E6C200] flex items-center gap-1 font-bold transition-colors duration-150"
+                              title="Editar imagen, días u horario de esta historia"
+                            >
+                              <Pencil className="w-3 h-3" />
+                              Editar
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => onDeleteStory(story.id)}
+                            className="text-[#FF6B6B]/80 hover:text-[#FF3B30] flex items-center gap-1 transition-colors duration-150"
+                            title="Eliminar historia"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+
+                    {/* Botón Desplegable para ver todas las historias */}
+                    {hiddenCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => toggleExpandDay(day.key)}
+                        className="w-full py-1.5 px-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-[#FFD700] hover:text-[#FFE033] border border-white/[0.08] hover:border-[#FFD700]/40 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm group select-none mt-1"
+                      >
+                        {isExpanded ? (
+                          <>
+                            <ChevronUp className="w-3.5 h-3.5 transition-transform group-hover:-translate-y-0.5" />
+                            <span>Ver menos</span>
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:translate-y-0.5" />
+                            <span>+{hiddenCount} {hiddenCount === 1 ? 'historia más' : 'historias más'}</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
 
