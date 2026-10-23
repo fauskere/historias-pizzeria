@@ -15,7 +15,7 @@ export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected })
     <header className="bg-[#181818]/95 border-b border-white/[0.08] sticky top-0 z-40 backdrop-blur-md shadow-lg shadow-black/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo & Brand - Centrado y limpio sin subtítulo */}
+          {/* Logo & Brand - Totalmente limpio y centrado */}
           <div 
             className="flex items-center gap-3 cursor-pointer group select-none py-1" 
             onClick={() => setActiveTab('calendar')}
@@ -23,15 +23,9 @@ export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected })
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] via-[#FFC107] to-[#E6C200] flex items-center justify-center shadow-lg shadow-[rgba(255,215,0,0.25)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[rgba(255,215,0,0.4)]">
               <Pizza className="w-5 h-5 text-black" />
             </div>
-            <div className="flex items-center gap-2.5">
-              <span className="font-extrabold text-base sm:text-lg text-white tracking-tight group-hover:text-[#FFD700] transition-colors">
-                Programador de Contenido
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[rgba(255,215,0,0.12)] text-[#FFD700] border border-[rgba(255,215,0,0.25)] tracking-wide shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse" />
-                Pizzería María Belén
-              </span>
-            </div>
+            <span className="font-extrabold text-base sm:text-lg text-white tracking-tight group-hover:text-[#FFD700] transition-colors">
+              Programador de Contenido
+            </span>
           </div>
 
           {/* Navigation Links (Desktop) */}
