@@ -205,17 +205,38 @@ export default function WeeklyCalendar({
                     {visibleStories.map(story => (
                       <div
                         key={`${day.key}-${story.id}`}
-                        className={`group relative rounded-2xl border p-2.5 transition-all duration-200 ${
+                        className={`group relative rounded-2xl border p-2.5 transition-all duration-200 overflow-hidden ${
                           story.active
                             ? 'bg-[#141414] border-white/[0.08] hover:border-[#FFD700]/50 shadow-sm'
                             : 'bg-[#121212] border-white/[0.04] opacity-50 hover:opacity-100'
                         }`}
                       >
-                        {/* Thumbnail & Badges */}
-                        <div className="flex gap-2.5 items-start">
+                        {/* Top Header: Hora completa y Botón de encendido/pausa */}
+                        <div className="flex items-center justify-between gap-1 mb-2">
+                          <span className="inline-flex items-center gap-1 font-mono text-[11px] font-extrabold text-[#FFD700] bg-[rgba(255,215,0,0.12)] px-2 py-0.5 rounded-md border border-[rgba(255,215,0,0.2)]">
+                            <Clock className="w-3 h-3 text-[#FFD700]" />
+                            {story.time} hs
+                          </span>
+
+                          {/* Switch Rápido Activar / Pausar */}
+                          <button
+                            onClick={() => onToggleActive(story.id, !story.active)}
+                            className={`p-1 rounded-md transition-colors duration-150 ${
+                              story.active
+                                ? 'text-[#00E096] bg-[#00E096]/10 hover:bg-[#00E096]/20'
+                                : 'text-[#666666] bg-white/[0.03] hover:bg-[#2C2C2C] hover:text-[#AAAAAA]'
+                            }`}
+                            title={story.active ? 'Pausar esta historia' : 'Activar esta historia'}
+                          >
+                            <Power className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Thumbnail & Info */}
+                        <div className="flex gap-2 items-start">
                           {/* 9:16 Mini Preview */}
                           <div 
-                            className="relative w-12 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 cursor-pointer border border-white/[0.1] group/thumb shadow-sm"
+                            className="relative w-11 h-18 rounded-lg overflow-hidden bg-black shrink-0 cursor-pointer border border-white/[0.1] group/thumb shadow-sm"
                             onClick={() => onPreviewStory(story)}
                             title="Clic para ver vista previa completa"
                           >
@@ -226,55 +247,33 @@ export default function WeeklyCalendar({
                             />
                             {story.mediaType === 'video' && (
                               <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
-                                <Film className="w-4 h-4 text-[#FFD700] drop-shadow" />
-                              </div>
-                            )}
-                            {story.sourceType === 'folder' && (
-                              <div className="absolute top-1 left-1 z-10 w-4 h-4 rounded-md bg-black/80 border border-[#FFD700]/40 flex items-center justify-center text-[9px]" title="Rotación desde carpeta">
-                                📁
+                                <Film className="w-3.5 h-3.5 text-[#FFD700] drop-shadow" />
                               </div>
                             )}
                             <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/0 transition-colors" />
                           </div>
 
                           {/* Info Column */}
-                          <div className="flex-1 min-w-0">
-                            {/* Time & Active Pill */}
-                            <div className="flex items-center justify-between gap-1 mb-1">
-                              <span className="inline-flex items-center gap-1 font-mono text-[11px] font-extrabold text-[#FFD700] bg-[rgba(255,215,0,0.12)] px-1.5 py-0.5 rounded-lg border border-[rgba(255,215,0,0.2)]">
-                                <Clock className="w-3 h-3" />
-                                {story.time} hs
-                              </span>
-
-                              {/* Switch Rápido Activar / Pausar */}
-                              <button
-                                onClick={() => onToggleActive(story.id, !story.active)}
-                                className={`p-1 rounded-lg transition-colors duration-150 ${
-                                  story.active
-                                    ? 'text-[#00E096] hover:bg-[#00E096]/20'
-                                    : 'text-[#666666] hover:bg-[#2C2C2C] hover:text-[#AAAAAA]'
-                                }`}
-                                title={story.active ? 'Pausar esta historia' : 'Activar esta historia'}
-                              >
-                                <Power className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-
+                          <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch">
                             {/* Title */}
-                            <h4 className="text-xs font-bold text-white truncate leading-snug" title={story.title}>
+                            <h4 className="text-xs font-bold text-white truncate leading-tight" title={story.title}>
                               {story.title}
                             </h4>
 
                             {/* Category or Folder */}
-                            <div className="flex items-center gap-1.5 mt-1 text-[10px]">
+                            <div className="mt-1">
                               {story.sourceType === 'folder' || story.folderName ? (
-                                <span className="inline-flex items-center gap-1 font-bold text-[#FFD700] bg-[rgba(255,215,0,0.1)] px-1.5 py-0.5 rounded border border-[rgba(255,215,0,0.2)] truncate">
-                                  📁 {story.folderName || 'Carpeta'} (Rotativo)
+                                <span 
+                                  className="inline-flex items-center gap-1 font-bold text-[#FFD700] bg-[rgba(255,215,0,0.1)] px-1.5 py-0.5 rounded border border-[rgba(255,215,0,0.2)] text-[10px] max-w-full truncate"
+                                  title={`Carpeta: ${story.folderName || 'General'}`}
+                                >
+                                  <span className="shrink-0">📁</span>
+                                  <span className="truncate">{story.folderName || 'Carpeta'}</span>
                                 </span>
                               ) : (
-                                <div className="flex items-center gap-1 text-[#AAAAAA]">
+                                <div className="flex items-center gap-1 text-[#AAAAAA] text-[10px] max-w-full">
                                   <span 
-                                    className="w-2 h-2 rounded-full" 
+                                    className="w-2 h-2 rounded-full shrink-0" 
                                     style={{ backgroundColor: story.color || '#FFD700' }} 
                                   />
                                   <span className="truncate">{story.categoryLabel || 'Historia'}</span>
@@ -282,21 +281,27 @@ export default function WeeklyCalendar({
                               )}
                             </div>
 
-                            {/* Platforms Icons */}
-                            <div className="flex items-center gap-2 mt-2 text-[#888888]">
-                              {story.platforms?.instagram && (
-                                <div className="text-[#FFD700] hover:text-[#E1306C] transition-colors" title="Instagram Stories">
-                                  <Instagram className="w-3 h-3" />
-                                </div>
-                              )}
-                              {story.platforms?.facebook && (
-                                <div className="text-[#FFD700] hover:text-[#1877F2] transition-colors" title="Facebook Page Stories">
-                                  <Facebook className="w-3 h-3" />
-                                </div>
-                              )}
+                            {/* Platforms & Repeat Indicator */}
+                            <div className="flex items-center justify-between gap-1 mt-1.5 pt-1 border-t border-white/[0.04]">
+                              <div className="flex items-center gap-1.5 text-[#888888]">
+                                {story.platforms?.instagram && (
+                                  <div className="text-[#FFD700] hover:text-[#E1306C] transition-colors" title="Instagram Stories">
+                                    <Instagram className="w-3 h-3" />
+                                  </div>
+                                )}
+                                {story.platforms?.facebook && (
+                                  <div className="text-[#FFD700] hover:text-[#1877F2] transition-colors" title="Facebook Page Stories">
+                                    <Facebook className="w-3 h-3" />
+                                  </div>
+                                )}
+                              </div>
+
                               {story.repeatWeekly && (
-                                <span className="text-[9px] text-[#888888] ml-auto font-bold" title="Se repite cada semana">
-                                  ↻ Semanal
+                                <span 
+                                  className="inline-flex items-center justify-center text-[10px] font-bold text-[#AAAAAA] bg-white/[0.05] hover:text-[#FFD700] px-1 py-0.2 rounded border border-white/[0.06] select-none"
+                                  title="Repetición semanal activa"
+                                >
+                                  ↻
                                 </span>
                               )}
                             </div>

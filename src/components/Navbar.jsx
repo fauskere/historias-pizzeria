@@ -15,7 +15,7 @@ export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected })
     <header className="bg-[#181818]/95 border-b border-white/[0.08] sticky top-0 z-40 backdrop-blur-md shadow-lg shadow-black/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo & Brand - Totalmente limpio y centrado */}
+          {/* Logo & Brand */}
           <div 
             className="flex items-center gap-3 cursor-pointer group select-none py-1" 
             onClick={() => setActiveTab('calendar')}
@@ -28,8 +28,8 @@ export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected })
             </span>
           </div>
 
-          {/* Navigation Links (Desktop) */}
-          <nav className="hidden md:flex items-center gap-1 bg-[#121212] p-1 rounded-xl border border-white/[0.06] shadow-inner">
+          {/* Navigation Links (Desktop) - Altura fija unificada y consistente */}
+          <nav className="hidden md:flex items-center gap-1 bg-[#121212] p-1 rounded-xl border border-white/[0.06] shadow-inner h-11">
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -37,14 +37,14 @@ export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected })
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
+                  className={`h-9 px-3.5 rounded-lg text-xs font-bold inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 shrink-0 select-none leading-none box-border ${
                     isActive
-                      ? 'bg-[#FFD700] text-black shadow-md shadow-[rgba(255,215,0,0.25)]'
+                      ? 'bg-[#FFD700] text-black shadow-md shadow-[rgba(255,215,0,0.25)] font-black'
                       : 'text-[#AAAAAA] hover:text-white hover:bg-white/[0.05]'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{tab.label}</span>
                 </button>
               );
             })}
@@ -96,14 +96,14 @@ export default function Navbar({ activeTab, setActiveTab, isFirebaseConnected })
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+                className={`h-8 px-3 rounded-lg text-xs font-bold whitespace-nowrap inline-flex items-center justify-center gap-1.5 transition-all shrink-0 leading-none ${
                   isActive
-                    ? 'bg-[#FFD700] text-black shadow-sm'
+                    ? 'bg-[#FFD700] text-black shadow-sm font-black'
                     : 'text-[#AAAAAA] hover:text-white bg-[#1E1E1E]'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span>{tab.label}</span>
               </button>
             );
           })}

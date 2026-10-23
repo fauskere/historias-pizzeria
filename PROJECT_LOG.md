@@ -3,7 +3,7 @@
 ## 📌 Identificación del Proyecto
 * **Nombre:** Programador de Contenido (PizzaStory Studio)
 * **Repositorio:** `git@github.com:fauskere/historias-pizzeria.git`
-* **Versión:** `v1.5.3`
+* **Versión:** `v1.5.4`
 * **Rama Activa:** `main`
 * **Hosting en Producción:** `https://programador-de-contenido.web.app`
 
@@ -19,17 +19,24 @@
 ---
 
 ## 🚀 Módulos y Funcionalidades
-1. **Navbar de Precisión (`Navbar.jsx`):** Marca sobria y limpia solo con el isotipo de Pizza y título "Programador de Contenido", indicador de estado Cloud/Local en tiempo real.
-2. **Calendario Semanal Interactivo (`WeeklyCalendar.jsx`):** Vista colapsable por día (máx 2 historias visibles por defecto, botón `+N historias más` con `ChevronDown`/`ChevronUp`), selector desplegable de categorías, acento visual superior en día activo, badges monospace.
+1. **Navbar de Precisión (`Navbar.jsx`):** Altura unificada de tabs (`h-9` desktop / `h-8` mobile) con alineación pixel-perfect del recuadro amarillo activo en todas las secciones.
+2. **Calendario Semanal Interactivo (`WeeklyCalendar.jsx`):** Tarjetas con cabecera superior para horario y botón `Power` a ancho completo (cero desbordamiento), carpetas truncadas elegantemente (`📁 {nombre}`), badge compacto `↻` de repetición semanal y límite de 2 historias con botón colapsable/expandible.
 3. **Gestión de Carpetas & Packs de Contenido (`FolderManager.jsx`, `FolderDetailView.jsx`, `FolderLaunchModal.jsx`):** Modos duales de publicación (inmediato vs programado), orden secuencial garantizado.
 4. **Editor y Creador de Historias (`StoryCreator.jsx`, `StoryPhoneMockup.jsx`, `EditStoryModal.jsx`):** Modularizado con simulación 9:16 en vivo.
 5. **Utilidades Compartidas (`src/utils/folderMedia.js`):** Extracción lógica reutilizable para carpetas y packs.
 6. **Registro de Publicaciones (`PublicationLogs.jsx`).**
-7. **Configuración y Verificación (`SettingsPanel.jsx`):** Versión `v1.5.3` visible al pie (Regla 4).
+7. **Configuración y Verificación (`SettingsPanel.jsx`):** Versión `v1.5.4` visible al pie (Regla 4).
 
 ---
 
 ## 📝 Registro de Sesiones y Cambios
+* **2026-10-22 (v1.5.4 - Fix de Desbordamiento en Tarjetas & Consistencia Navbar):**
+  * **Consistencia de Navbar:** Se unificó la altura de todos los botones de navegación (`h-9` en desktop y `h-8` en mobile) con flexbox centrado y `leading-none`. El recuadro amarillo activo ahora tiene exactamente el mismo tamaño en "Calendario Semanal", "Carpetas", "Nueva Historia", etc.
+  * **Solución de Desbordamiento en Tarjetas Semanales:**
+    * El botón de encendido/pausa (`Power`) y la hora (`Clock`) se reubicaron en una fila superior de ancho completo dentro de la tarjeta, evitando que queden expulsados fuera de la UI en las columnas angostas de los días.
+    * La etiqueta de carpetas rotativas fue acortada y provista de elipsis (`max-w-full truncate`) mostrando `📁 {nombre}` sin desbordar.
+    * El indicador semanal con flechita se sintetizó en un badge compacto `↻` situado en la fila de redes sociales con tooltip descriptivo.
+    * Se aplicó `overflow-hidden` a la tarjeta para blindar la UI contra cualquier recorte indeseado.
 * **2026-10-22 (v1.5.3 - Plegado Inteligente de Días & Desactivación de GitHub Actions):**
   * **Consulta sobre Minutos de GitHub Actions:** Se identificó que existía un archivo residual `.github/workflows/auto-publisher.yml` con un cron cada 15 minutos de una versión preliminar previa a la migración a Cloud Functions. Se eliminó por completo para frenar el consumo de minutos de GitHub. La app corre 100% en Firebase sin depender de GitHub Actions.
   * **Plegado de Historias por Día:** En `WeeklyCalendar.jsx`, se limitó la visualización inicial a 2 historias por día. Si hay más historias, se añade un botón colapsable interactivo (`+N historias más` / `Ver menos`) con flecha `ChevronDown`/`ChevronUp` individual por día, evitando que las columnas se estiren verticalmente.
