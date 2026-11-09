@@ -278,6 +278,35 @@ async function runScheduler() {
     return;
   }
 
+  // 2.1 Verificar si el día actual está activo (Switch Maestro por Día)
+  let activeDays = {
+    lunes: true,
+    martes: false,
+    miercoles: true,
+    jueves: true,
+    viernes: true,
+    sabado: true,
+    domingo: true
+  };
+
+  try {
+    const schedRes = await fetch(`${FIRESTORE_BASE}/settings/schedule`);
+    if (schedRes.ok) {
+      const schedDoc = await schedRes.json();
+      const schedData = parseFirestoreDoc(schedDoc);
+      if (schedData && schedData.activeDays && typeof schedData.activeDays === 'object') {
+        activeDays = { ...activeDays, ...schedData.activeDays };
+      }
+    }
+  } catch (err) {
+    console.warn('No se pudo leer settings/schedule de Firestore:', err.message);
+  }
+
+  if (activeDays[currentDay] === false) {
+    console.log(`[Switch Maestro] El día ${currentDay.toUpperCase()} está PAUSADO / CERRADO en el Calendario. No se publican historias hoy.`);
+    return;
+  }
+
   // 3. Obtener historias activas de Firestore
   console.log('Consultando historias en Firestore...');
   const storiesRes = await fetch(`${FIRESTORE_BASE}/stories`);

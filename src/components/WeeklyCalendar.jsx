@@ -32,6 +32,8 @@ export default function WeeklyCalendar({
   stories, 
   folders = [], 
   categories = [], 
+  activeDays = {},
+  onToggleDayActive,
   onStoryCreated, 
   onToggleActive, 
   onDeleteStory, 
@@ -153,6 +155,7 @@ export default function WeeklyCalendar({
         {DAYS_OF_WEEK.map(day => {
           const dayStories = storiesByDay[day.key] || [];
           const isToday = day.key === todayKey;
+          const isDayActive = activeDays[day.key] !== false;
           const isExpanded = Boolean(expandedDays[day.key]);
           const visibleStories = isExpanded ? dayStories : dayStories.slice(0, 2);
           const hiddenCount = dayStories.length - 2;
@@ -170,25 +173,62 @@ export default function WeeklyCalendar({
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FFD700] to-transparent" />
               )}
 
-              {/* Day Header */}
-              <div className="p-3.5 border-b border-white/[0.06] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={`font-extrabold text-sm ${isToday ? 'text-[#FFD700]' : 'text-white'}`}>
+              {/* Day Header con Switch Maestro */}
+              <div className="p-3 border-b border-white/[0.06] flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className={`font-extrabold text-sm truncate ${
+                    !isDayActive ? 'text-[#777777]' : isToday ? 'text-[#FFD700]' : 'text-white'
+                  }`}>
                     {day.label}
                   </span>
                   {isToday && (
-                    <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-[#FFD700] text-black shadow-sm">
+                    <span className="text-[9px] uppercase font-black tracking-wider px-1.5 py-0.2 rounded-full bg-[#FFD700] text-black shadow-sm shrink-0">
                       Hoy
                     </span>
                   )}
                 </div>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-[#121212] text-[#AAAAAA] font-bold border border-white/[0.06]">
-                  {dayStories.length}
-                </span>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#121212] text-[#AAAAAA] font-bold border border-white/[0.06]">
+                    {dayStories.length}
+                  </span>
+
+                  {/* Switch Maestro del Día */}
+                  <button
+                    type="button"
+                    onClick={() => onToggleDayActive && onToggleDayActive(day.key)}
+                    className={`relative inline-flex h-5 w-8 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      isDayActive ? 'bg-[#00E096]' : 'bg-[#2C2C2C]'
+                    }`}
+                    title={isDayActive ? `${day.label}: ACTIVO (se publican historias)` : `${day.label}: PAUSADO / CERRADO (no se publica nada)`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full shadow-sm ring-0 transition duration-200 ease-in-out my-auto ml-0.5 ${
+                        isDayActive ? 'translate-x-3 bg-white' : 'translate-x-0 bg-[#888888]'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
 
+              {/* Sub-banner si el día está pausado */}
+              {!isDayActive && (
+                <div className="px-3 py-1 bg-white/[0.02] border-b border-white/[0.04] flex items-center justify-between text-[10px] text-[#888888] select-none">
+                  <span className="flex items-center gap-1 font-semibold text-[#FF6B6B]/90">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B6B] shrink-0" />
+                    Día en pausa
+                  </span>
+                  <span className="uppercase text-[9px] font-bold text-[#777777]">Cerrado</span>
+                </div>
+              )}
+
               {/* Day Stories Container */}
-              <div className="p-2.5 flex-1 space-y-2.5 min-h-[170px]">
+              <div className={`p-2.5 flex-1 space-y-2.5 min-h-[170px] ${!isDayActive ? 'opacity-50' : ''}`}>
+                {!isDayActive && dayStories.length > 0 && (
+                  <div className="text-[10px] text-center text-[#777777] bg-white/[0.02] py-1 px-2 rounded-lg border border-white/[0.04] select-none">
+                    Historias listas para cuando actives el día
+                  </div>
+                )}
                 {dayStories.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center p-4 border border-dashed border-white/[0.06] rounded-2xl">
                     <p className="text-xs text-[#666666] mb-2 font-medium">Sin historias</p>

@@ -50,6 +50,16 @@ exports.publishScheduledStories = onSchedule('every 5 minutes', async (_event) =
 
   console.log(`Día actual: ${weekdayPart}, Hora actual: ${currentHour}:${currentMinute} (${currentTimeTotalMinutes} mins)`);
 
+  // 2.1 Verificar si el día actual está habilitado en settings/schedule (Switch Maestro por Día)
+  const scheduleDoc = await db.collection('settings').doc('schedule').get();
+  if (scheduleDoc.exists) {
+    const schedData = scheduleDoc.data();
+    if (schedData?.activeDays && schedData.activeDays[weekdayPart] === false) {
+      console.log(`[Switch Maestro] El día ${weekdayPart.toUpperCase()} está PAUSADO / CERRADO. No se publican historias hoy.`);
+      return;
+    }
+  }
+
   // 3. Consultar historias activas
   const storiesSnapshot = await db.collection('stories').where('active', '==', true).get();
   if (storiesSnapshot.empty) {

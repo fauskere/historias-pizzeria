@@ -3,7 +3,7 @@
 ## 📌 Identificación del Proyecto
 * **Nombre:** Programador de Contenido (PizzaStory Studio)
 * **Repositorio:** `git@github.com:fauskere/historias-pizzeria.git`
-* **Versión:** `v1.5.8`
+* **Versión:** `v1.5.9`
 * **Rama Activa:** `main`
 * **Visibilidad Repositorio:** Público (Minutos de GitHub Actions 100% Ilimitados y Gratuitos de por vida).
 * **Hosting en Producción:** `https://programador-de-contenido.web.app`
@@ -13,7 +13,7 @@
 ## 🛠️ Stack Tecnológico y Arquitectura
 * **Frontend:** React 19, Vite 8, Tailwind CSS 4, Lucide Icons.
 * **Hosting & Base de Datos:** Firebase Hosting & Firestore (Plan Spark 100% Gratuito, sin costo ni tarjeta de crédito).
-* **Robot Autónomo en la Nube:** GitHub Actions (`node scripts/cloud-scheduler.js`) con ejecución ilimitada y gratuita. Activo de Lunes a Domingo en franja comercial (13:30 a 22:00 hs con pico de 15m entre 19:00 y 20:30 hs).
+* **Robot Autónomo en la Nube:** GitHub Actions (`node scripts/cloud-scheduler.js`) con ejecución ilimitada y gratuita. Activo de Lunes a Domingo en franja comercial (13:30 a 22:00 hs con pico de 15m entre 19:00 y 20:30 hs). Sincronizado con el Switch Maestro por Día para respetar días cerrados y feriados.
 * **Almacenamiento Multimedia:** Cloudinary / Firebase Storage.
 * **Integración Redes Sociales:** Meta Graph API v21.0 con soporte nativo completo para fotos y videos en Instagram y Facebook Page Stories.
 * **Modularización por Dominio:** 100% de los archivos con menos de 800 líneas de código (Regla 2).
@@ -22,17 +22,22 @@
 
 ## 🚀 Módulos y Funcionalidades
 1. **Navbar de Precisión (`Navbar.jsx`):** Altura unificada de tabs (`h-9` desktop / `h-8` mobile) con alineación pixel-perfect del recuadro amarillo activo en todas las secciones.
-2. **Calendario Semanal Interactivo (`WeeklyCalendar.jsx`):** Tarjetas con cabecera superior para horario y botón `Power` a ancho completo (cero desbordamiento), carpetas truncadas elegantemente (`📁 {nombre}`), badge compacto `↻` de repetición semanal y límite de 2 historias con botón colapsable/expandible.
+2. **Calendario Semanal Interactivo & Switch Maestro (`WeeklyCalendar.jsx`):** Switch maestro On/Off independiente en la cabecera de cada columna diaria para encender o pausar días enteros (ideal feriados y descansos) sin alterar historias semanales, tarjetas con cabecera superior a ancho completo, carpetas truncadas elegantemente (`📁 {nombre}`), badge compacto `↻` de repetición semanal y límite de 2 historias con botón colapsable/expandible.
 3. **Gestión de Carpetas & Packs de Contenido (`FolderManager.jsx`, `FolderDetailView.jsx`, `FolderLaunchModal.jsx`):** Modos duales de publicación (inmediato vs programado), orden secuencial garantizado.
 4. **Editor y Creador de Historias (`StoryCreator.jsx`, `StoryPhoneMockup.jsx`, `EditStoryModal.jsx`):** Modularizado con simulación 9:16 en vivo.
 5. **Utilidades Compartidas (`src/utils/folderMedia.js`):** Extracción lógica reutilizable para carpetas y packs.
-6. **Robot de Publicación Ilimitado en GitHub Actions (`scripts/cloud-scheduler.js` & `.github/workflows/auto-publisher.yml`):** Cobertura comercial continua con ejecuciones exitosas y sin límites de cuota mensual.
+6. **Robot de Publicación Ilimitado en GitHub Actions (`scripts/cloud-scheduler.js` & `.github/workflows/auto-publisher.yml`):** Cobertura comercial continua con ejecuciones exitosas, respeto automático de días pausados y sin límites de cuota mensual.
 7. **Registro de Publicaciones (`PublicationLogs.jsx`).**
-8. **Configuración y Verificación (`SettingsPanel.jsx`):** Versión `v1.5.8` visible al pie (Regla 4).
+8. **Configuración y Verificación (`SettingsPanel.jsx`):** Versión `v1.5.9` visible al pie (Regla 4).
 
 ---
 
 ## 📝 Registro de Sesiones y Cambios
+* **2026-11-09 (v1.5.9 - Switch Maestro por Día Completo en Calendario Semanal):**
+  * **Problema Resuelto:** Al programar historias de carpetas para varios días (ej: Miércoles a Domingo y ahora Lunes/Martes), pausar una historia desde la columna del Martes pausaba la historia para toda la semana.
+  * **Switch Maestro por Día:** Se implementó un interruptor de palanca On/Off independiente en la cabecera de cada día de la semana (`WeeklyCalendar.jsx`).
+  * **Manejo de Feriados y Descansos:** Permite apagar un día completo (ej: Lunes o Martes habituales) manteniendo las historias preparadas. Al abrir un feriado (como hoy), se activa el día con un solo clic y todo sale publicado normalmente.
+  * **Sincronización en la Nube:** El estado se sincroniza en Firestore (`settings/schedule`) y en el robot de GitHub Actions (`cloud-scheduler.js`) y Cloud Functions (`functions/index.js`), garantizando que los días apagados no disparen publicaciones no deseadas.
 * **2026-10-23 (Transición a Repositorio Público & Minutos Ilimitados):**
   * El usuario configuró el repositorio como público en GitHub.
   * Se verificó en tiempo real la ejecución exitosa del workflow de publicación (`run id: 39995570798`).

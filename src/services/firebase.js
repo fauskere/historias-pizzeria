@@ -248,6 +248,63 @@ export async function fetchMetaSettings() {
   return getMetaSettings();
 }
 
+// ----------------------------------------------------------------------------
+// GESTIÓN DE DÍAS ACTIVOS EN CALENDARIO (SWITCH MAESTRO POR DÍA)
+// ----------------------------------------------------------------------------
+const LOCAL_STORAGE_KEY_ACTIVE_DAYS = 'pizzeria_active_days_local';
+export const DEFAULT_ACTIVE_DAYS = {
+  lunes: true,
+  martes: false,
+  miercoles: true,
+  jueves: true,
+  viernes: true,
+  sabado: true,
+  domingo: true
+};
+
+export function getLocalActiveDays() {
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVE_DAYS);
+    return raw ? JSON.parse(raw) : DEFAULT_ACTIVE_DAYS;
+  } catch {
+    return DEFAULT_ACTIVE_DAYS;
+  }
+}
+
+export async function fetchActiveDays() {
+  const local = getLocalActiveDays();
+  const { initialized } = initFirebase();
+  if (initialized && db) {
+    try {
+      const snap = await getDoc(doc(db, 'settings', 'schedule'));
+      if (snap.exists()) {
+        const remoteData = snap.data();
+        if (remoteData?.activeDays && typeof remoteData.activeDays === 'object') {
+          const merged = { ...DEFAULT_ACTIVE_DAYS, ...remoteData.activeDays };
+          localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVE_DAYS, JSON.stringify(merged));
+          return merged;
+        }
+      }
+    } catch (err) {
+      console.warn('Error fetching active days from firestore:', err);
+    }
+  }
+  return local;
+}
+
+export async function saveActiveDays(activeDays) {
+  localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVE_DAYS, JSON.stringify(activeDays));
+  const { initialized } = initFirebase();
+  if (initialized && db) {
+    try {
+      await setDoc(doc(db, 'settings', 'schedule'), { activeDays }, { merge: true });
+      console.log('Días activos sincronizados en Firestore para el robot de GitHub');
+    } catch (err) {
+      console.warn('Error sincronizando días activos en Firestore:', err);
+    }
+  }
+}
+
 // Logs de publicación sincronizados con Firestore
 export function getPublicationLogs() {
   try {

@@ -21,7 +21,10 @@ import {
   resetFolderCycle,
   getCategories,
   saveCategory,
-  deleteCategory
+  deleteCategory,
+  fetchActiveDays,
+  saveActiveDays,
+  DEFAULT_ACTIVE_DAYS
 } from './services/firebase';
 
 export default function App() {
@@ -35,6 +38,7 @@ export default function App() {
   const [creatorInitialDay, setCreatorInitialDay] = useState(null);
   const [isFirebaseConnected, setIsFirebaseConnected] = useState(false);
   const [restaurantName, setRestaurantName] = useState('Pizzería María Belén');
+  const [activeDays, setActiveDays] = useState(DEFAULT_ACTIVE_DAYS);
 
   // Cargar historias, carpetas y categorías al iniciar
   const loadInitialData = async () => {
@@ -48,14 +52,16 @@ export default function App() {
         setRestaurantName(meta.restaurantName);
       }
 
-      const [list, fList, catList] = await Promise.all([
+      const [list, fList, catList, daysList] = await Promise.all([
         getStories(),
         getFolders(),
-        getCategories()
+        getCategories(),
+        fetchActiveDays()
       ]);
       setStories(list);
       setFolders(fList);
       setCategories(catList);
+      if (daysList) setActiveDays(daysList);
     } catch (err) {
       console.error('Error cargando historias, carpetas y categorías iniciales:', err);
     } finally {
@@ -143,6 +149,16 @@ export default function App() {
     setFolders(updated);
   };
 
+  // Alternar día completo activo / pausado (Switch Maestro por Día)
+  const handleToggleDayActive = async (dayKey) => {
+    const updated = {
+      ...activeDays,
+      [dayKey]: !activeDays[dayKey]
+    };
+    setActiveDays(updated);
+    await saveActiveDays(updated);
+  };
+
   // Handlers para categorías personalizadas
   const handleSaveCategory = async (catData) => {
     await saveCategory(catData);
@@ -182,6 +198,8 @@ export default function App() {
                 stories={stories}
                 folders={folders}
                 categories={categories}
+                activeDays={activeDays}
+                onToggleDayActive={handleToggleDayActive}
                 onStoryCreated={handleStoryCreated}
                 onToggleActive={handleToggleActive}
                 onDeleteStory={handleDeleteStory}
