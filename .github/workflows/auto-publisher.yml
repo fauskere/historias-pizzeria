@@ -2,24 +2,11 @@ name: Auto-Publicador Historias Pizzería
 
 on:
   schedule:
-    # ACTIVO TODOS LOS DÍAS (Lunes a Domingo con horario comercial optimizado)
-    
-    # 1) TARDE: 13:30 a 18:30 hs Argentina (cada 30 min) -> 16:30 a 21:30 UTC
-    - cron: '30 16 * * *'
-    - cron: '0,30 17-21 * * *'
+    # Se ejecuta en horario comercial de la pizzería (13:00 a 22:30 hs Argentina / 16:00 a 01:30 UTC)
+    # Se usan minutos impares (2, 17, 32, 47) para evitar la congestión masiva de GitHub a las :00 y :30
+    - cron: '2,17,32,47 16-23,0-1 * * *'
 
-    # 2) HORA PICO: 19:00 a 20:30 hs Argentina (cada 15 min) -> 22:00 a 23:30 UTC
-    - cron: '0,15,30,45 22 * * *'
-    - cron: '0,15,30 23 * * *'
-
-    # 3) NOCHE: 20:30 a 22:00 hs Argentina (cada 30 min) -> 00:00 a 01:00 UTC (día siguiente)
-    - cron: '0,30 0 * * *'
-    - cron: '0 1 * * *'
-
-    # Rendimiento: 21 ejecuciones diarias x 30 días = 630 min/mes (apenas el 31,5% de los 2.000 min gratis de GitHub).
-    # De 22:00 a 13:30 hs está 100% apagado para no gastar minutos de madrugada.
-
-  workflow_dispatch: # Permite probar o ejecutar manualmente desde GitHub con un botón si hiciera falta
+  workflow_dispatch: # Permite disparar manualmente desde GitHub o API en cualquier momento
 
 jobs:
   publish-stories:
