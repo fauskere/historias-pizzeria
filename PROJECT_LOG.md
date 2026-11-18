@@ -33,6 +33,10 @@
 ---
 
 ## 📝 Registro de Sesiones y Cambios
+* **2026-11-18 (Publicación de Rescate Historia Miércoles Horarios):**
+  * Detección de omisión en la historia de Miércoles 14:00 hs ("Horarios") debido a retraso/omisión en la cola de cron de GitHub Actions.
+  * Publicación inmediata directa vía Meta Graph API v21.0: Instagram Stories (ID: `17903185587673521`) y Facebook Page Stories (ID: `1485738340362558`).
+  * Actualizado `lastAutoPublishDate` a `2026-11-18` en Firestore y guardado registro en la colección `history`.
 * **2026-11-09 (v1.5.9 - Switch Maestro por Día Completo en Calendario Semanal):**
   * **Problema Resuelto:** Al programar historias de carpetas para varios días (ej: Miércoles a Domingo y ahora Lunes/Martes), pausar una historia desde la columna del Martes pausaba la historia para toda la semana.
   * **Switch Maestro por Día:** Se implementó un interruptor de palanca On/Off independiente en la cabecera de cada día de la semana (`WeeklyCalendar.jsx`).
