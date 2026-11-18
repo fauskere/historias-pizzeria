@@ -33,6 +33,12 @@
 ---
 
 ## 📝 Registro de Sesiones y Cambios
+* **2026-11-18 (Publicación de Rescate Noche & Optimización Cron GitHub):**
+  * Se publicaron con éxito en vivo las historias nocturnas:
+    * **Pedidos (19:30 hs):** Publicada en Instagram (ID: `18450158530198572`) y Facebook (ID: `1453861900239140`).
+    * **Pizzas (19:45 hs):** Video Panceta Cheddar publicado en Instagram (ID: `18033370367924301`).
+    * **Burgers (20:00 hs):** Pack "Crispy" (2 historias) publicado en Instagram (IDs: `17940301683125650`, `18093460409240813`) y Facebook (IDs: `1453867116905285`, `1453867323571931`).
+  * Optimización de `.github/workflows/auto-publisher.yml` a minutos asíncronos (`2,17,32,47`) y ventana de 45 minutos para evitar congestiones en los servidores de GitHub Actions.
 * **2026-11-18 (Publicación de Rescate Historia Miércoles Horarios):**
   * Detección de omisión en la historia de Miércoles 14:00 hs ("Horarios") debido a retraso/omisión en la cola de cron de GitHub Actions.
   * Publicación inmediata directa vía Meta Graph API v21.0: Instagram Stories (ID: `17903185587673521`) y Facebook Page Stories (ID: `1485738340362558`).
