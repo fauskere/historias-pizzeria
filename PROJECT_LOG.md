@@ -33,6 +33,11 @@
 ---
 
 ## 📝 Registro de Sesiones y Cambios
+* **2026-11-18 (Resolución Definitiva: Renovación de Token en cron-job.org & Verificación Exitosa):**
+  * **Causa Raíz Identificada:** El token personal de GitHub (PAT) configurado en el header `Authorization` de `cron-job.org` había expirado el 15 de noviembre, arrojando errores `401 Unauthorized` que llevaron a cron-job.org a deshabilitar el job automáticamente.
+  * **Solución Implementada:** Generación de un nuevo token GitHub PAT sin vencimiento y actualización del header `Authorization: Bearer <nuevo_token>` en `cron-job.org`.
+  * **Prueba en Vivo Validada:** Disparo manual desde cron-job.org recibido al instante por GitHub Actions (`workflow_dispatch`, Run ID `44429927532`, estado `success` en 11 segundos).
+  * **Doble Respaldo:** El sistema ahora cuenta con el disparador externo activo cada 5 minutos más el cron nativo optimizado en minutos asíncronos (`2,17,32,47`) y ventana de tolerancia de 45m.
 * **2026-11-18 (Publicación de Rescate Noche & Optimización Cron GitHub):**
   * Se publicaron con éxito en vivo las historias nocturnas:
     * **Pedidos (19:30 hs):** Publicada en Instagram (ID: `18450158530198572`) y Facebook (ID: `1453861900239140`).
